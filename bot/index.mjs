@@ -47,6 +47,16 @@ function keyboard(raw = VISUAL_NUMBER) {
     inline_keyboard: [
       [{ text: '📋 Скопировать номер', copy_text: { text: raw } }],
       [{ text: '🌐 Открыть карточку', url: CARD_URL }],
+      [{
+        text: '📤 Поделиться реквизитами',
+        switch_inline_query_chosen_chat: {
+          query: 'card',
+          allow_user_chats: true,
+          allow_bot_chats: true,
+          allow_group_chats: true,
+          allow_channel_chats: true,
+        },
+      }],
     ],
   };
 }
@@ -297,6 +307,9 @@ async function handleMessage(message) {
 }
 
 async function handleInlineQuery(query) {
+  const queryText = query.query?.trim().toLowerCase() ?? '';
+  console.log(`Inline query from ${query.from?.id ?? 'unknown'}: ${queryText || '[empty]'}`);
+
   if (cachedPhotoFileId) {
     try {
       await bot('answerInlineQuery', {
@@ -305,7 +318,7 @@ async function handleInlineQuery(query) {
         is_personal: true,
         results: [{
           type: 'cached_photo',
-          id: 'pumb-payment-photo-v12',
+          id: 'pumb-payment-photo-v13',
           photo_file_id: cachedPhotoFileId,
           caption: caption(),
           parse_mode: 'HTML',
@@ -324,7 +337,7 @@ async function handleInlineQuery(query) {
     is_personal: true,
     results: [{
       type: 'article',
-      id: 'pumb-payment-article-v12',
+      id: 'pumb-payment-article-v13',
       title: `PUMB • ${VISUAL_HOLDER}`,
       description: VISUAL_NUMBER,
       input_message_content: {
