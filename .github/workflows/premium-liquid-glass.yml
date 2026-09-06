@@ -1,0 +1,67 @@
+name: Premium Liquid Glass
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/premium-liquid-glass.yml'
+permissions:
+  contents: write
+jobs:
+  redesign:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply premium Liquid Glass skin
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          marker='/* PREMIUM_LIQUID_GLASS_V1 */'
+          if marker in s:
+              raise SystemExit(0)
+          css=r'''/* PREMIUM_LIQUID_GLASS_V1 */
+          :root{--glass:rgba(18,24,37,.54);--glass2:rgba(8,13,23,.72);--edge:rgba(255,255,255,.18);--pink:#ff315f;--cyan:#3aa9ff;--mint:#38f0b0}
+          body{background:radial-gradient(85% 45% at 8% 0%,rgba(42,83,160,.25),transparent 64%),radial-gradient(70% 38% at 92% 26%,rgba(255,29,82,.20),transparent 65%),radial-gradient(80% 42% at 88% 100%,rgba(20,89,225,.25),transparent 68%),#050912!important;background-attachment:fixed!important}
+          body:before{content:"";position:fixed;inset:-30%;pointer-events:none;background:conic-gradient(from 180deg at 50% 50%,transparent,rgba(255,39,91,.055),transparent,rgba(47,132,255,.06),transparent);filter:blur(55px);animation:ambientGlass 14s linear infinite}
+          .wrap{max-width:560px!important}
+          .brand{height:58px!important;margin:2px 7px 12px!important;filter:drop-shadow(0 8px 22px rgba(0,0,0,.38))}
+          .logo{font-size:39px!important;color:#ff2455!important;text-shadow:0 0 22px rgba(255,36,85,.28)}
+          .divider{background:linear-gradient(transparent,rgba(255,255,255,.28),transparent)!important}
+          .tag{color:rgba(239,242,249,.66)!important;font-weight:750!important}
+          .panel,.fx{backdrop-filter:blur(30px) saturate(155%)!important;-webkit-backdrop-filter:blur(30px) saturate(155%)!important}
+          .panel{border-radius:31px!important;border:1px solid rgba(255,255,255,.22)!important;background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(255,255,255,.055) 35%,rgba(8,12,22,.64) 72%,rgba(255,30,80,.08))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.27),inset 0 -1px 0 rgba(255,255,255,.07),0 22px 65px rgba(0,0,0,.46),0 0 34px rgba(255,34,83,.10)!important}
+          .panel:before{content:"";position:absolute;z-index:0;left:4%;right:4%;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.75),rgba(255,90,130,.6),transparent);filter:blur(.15px)}
+          .panel:after{width:255px!important;height:255px!important;right:-126px!important;top:-132px!important;background:radial-gradient(circle at 28% 30%,rgba(255,83,119,.98),rgba(235,19,68,.86) 48%,rgba(110,4,35,.28) 70%,transparent 72%)!important;filter:drop-shadow(0 0 30px rgba(255,32,82,.26));animation:redOrb 7s ease-in-out infinite}
+          .eyebrow{color:rgba(228,233,244,.72)!important;letter-spacing:.18em!important}
+          .holder{font-weight:850!important;letter-spacing:-.045em!important;text-shadow:0 2px 18px rgba(0,0,0,.26)}
+          .holder-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+          .paybadges{display:flex!important;align-items:center;gap:7px!important}
+          .paybadge{height:27px!important;min-width:46px!important;padding:0 9px!important;border-radius:999px!important;background:linear-gradient(145deg,rgba(255,255,255,.14),rgba(255,255,255,.035))!important;border:1px solid rgba(255,255,255,.16)!important;box-shadow:inset 0 1px rgba(255,255,255,.18),0 8px 22px rgba(0,0,0,.25)!important;backdrop-filter:blur(16px)!important}
+          .paybadge.mc{box-shadow:inset 0 1px rgba(255,255,255,.18),0 0 18px rgba(255,48,61,.18)!important}.paybadge.visa{color:#fff!important;font-weight:950!important;font-style:italic!important;font-size:12px!important;text-shadow:0 0 12px #3388ff!important;box-shadow:inset 0 1px rgba(255,255,255,.18),0 0 18px rgba(44,110,255,.2)!important}
+          .number-box{border-radius:21px!important;border:1px solid rgba(255,255,255,.16)!important;background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(4,8,16,.36))!important;box-shadow:inset 0 1px rgba(255,255,255,.12),0 14px 35px rgba(0,0,0,.25)!important}
+          .number{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif!important;font-weight:760!important;letter-spacing:.035em!important;font-variant-numeric:tabular-nums!important}
+          .copy{border-radius:18px!important;border:1px solid rgba(255,255,255,.28)!important;background:linear-gradient(145deg,rgba(255,66,111,.94),rgba(183,8,52,.82))!important;box-shadow:inset 0 1px rgba(255,255,255,.34),0 10px 30px rgba(235,18,68,.32),0 0 22px rgba(255,37,85,.18)!important;transition:transform .18s ease,filter .18s ease}.copy:active{transform:scale(.92);filter:brightness(1.15)}
+          .status{color:rgba(210,216,228,.57)!important}
+          .fx{border-radius:31px!important;border:1px solid rgba(255,79,121,.40)!important;background:linear-gradient(145deg,rgba(23,31,49,.69),rgba(7,12,22,.73) 48%,rgba(7,18,37,.68))!important;box-shadow:inset 0 1px rgba(255,255,255,.15),0 25px 70px rgba(0,0,0,.48),-12px 0 45px rgba(255,34,84,.08),12px 10px 50px rgba(32,119,255,.10)!important}
+          .fx:after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(120deg,transparent 18%,rgba(255,255,255,.08) 30%,transparent 42%);transform:translateX(-115%);animation:glassSweep 8s ease-in-out infinite}
+          .fx-head{border-color:rgba(255,255,255,.09)!important}.title{letter-spacing:.13em!important}.live{background:linear-gradient(145deg,rgba(255,55,101,.18),rgba(255,255,255,.04))!important;border-color:rgba(255,94,132,.38)!important;box-shadow:inset 0 1px rgba(255,255,255,.13),0 0 18px rgba(255,39,88,.12)}
+          .currency{border-color:rgba(255,255,255,.08)!important}.flagbox{border-radius:14px!important;background:linear-gradient(145deg,rgba(255,255,255,.14),rgba(255,255,255,.035))!important;border-color:rgba(255,255,255,.16)!important;box-shadow:inset 0 1px rgba(255,255,255,.16),0 10px 28px rgba(0,0,0,.28)!important}
+          .rate{font-weight:850!important;letter-spacing:-.055em!important}.usd .rate{text-shadow:0 0 24px rgba(60,244,178,.22)!important}.eur .rate{text-shadow:0 0 24px rgba(53,164,255,.25)!important}.uah{color:#ff6f94!important;text-shadow:0 0 16px rgba(255,54,105,.24)}
+          .chart{border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.018),rgba(255,255,255,.006));overflow:hidden;padding:2px 1px 0}.grid{stroke:rgba(255,255,255,.075)!important}.base{stroke-width:2.4!important}.stream{stroke-width:3.8!important}.endhalo{filter:blur(.3px)}
+          .foot{color:rgba(180,188,204,.48)!important}.fine{color:rgba(166,174,190,.42)!important}
+          .toast{backdrop-filter:blur(25px) saturate(150%);-webkit-backdrop-filter:blur(25px) saturate(150%);background:rgba(22,29,43,.72)!important;border:1px solid rgba(255,255,255,.19)!important;box-shadow:inset 0 1px rgba(255,255,255,.16),0 18px 45px rgba(0,0,0,.35)!important}
+          @keyframes ambientGlass{to{transform:rotate(360deg)}}@keyframes redOrb{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(-6px,7px,0) scale(1.04)}}@keyframes glassSweep{0%,62%{transform:translateX(-115%)}78%,100%{transform:translateX(115%)}}
+          @media(max-height:760px){.brand{height:44px!important}.panel{border-radius:25px!important}.fx{border-radius:25px!important}}
+          '''
+          s=s.replace('</style>',css+'</style>',1)
+          p.write_text(s)
+          PY
+      - name: Commit redesign
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'Redesign card in premium Apple Liquid Glass style'
+          git push
