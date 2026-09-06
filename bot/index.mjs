@@ -146,7 +146,6 @@ function mixedCasePixelText(text, x, y, unit, fill = '#ffffff') {
       cursor += unit * 3.8;
       continue;
     }
-
     const isLower = char >= 'a' && char <= 'z';
     const localUnit = isLower ? unit * 0.72 : unit;
     const localY = isLower ? y + unit * 1.95 : y;
@@ -283,8 +282,10 @@ async function uploadRenderedPhoto(chatId, { temporary = false } = {}) {
   return sent;
 }
 
-async function ensureCachedPhotoFileId(chatId) {
+async function ensureCachedPhotoFileId(chatId, forceRefresh = false) {
+  if (forceRefresh) cachedPhotoFileId = null;
   if (cachedPhotoFileId) return cachedPhotoFileId;
+
   console.log(`Priming Telegram photo cache via chat ${chatId}`);
   await uploadRenderedPhoto(chatId, { temporary: true });
   if (!cachedPhotoFileId) throw new Error('Telegram did not return a photo file_id');
@@ -326,49 +327,64 @@ async function handleMessage(message) {
   }
 }
 
+async function answerInlineWithPhoto(queryId, photoFileId) {
+  return bot('answerInlineQuery', {
+    inline_query_id: queryId,
+    cache_time: 0,
+    is_personal: true,
+    results: [{
+      type: 'cached_photo',
+      id: 'pumb-payment-photo-v15',
+      photo_file_id: photoFileId,
+      caption: caption(),
+      parse_mode: 'HTML',
+      reply_markup: keyboard(),
+    }],
+  });
+}
+
 async function handleInlineQuery(query) {
   const queryText = query.query?.trim().toLowerCase() ?? '';
   const userId = query.from?.id;
   console.log(`Inline query from ${userId ?? 'unknown'}: ${queryText || '[empty]'}`);
 
-  try {
-    if (!cachedPhotoFileId) {
-      if (!userId) throw new Error('Inline query has no sender id');
-      await ensureCachedPhotoFileId(userId);
-    }
-
+  if (!userId) {
+    console.error('Inline photo sharing aborted: missing sender id');
     await bot('answerInlineQuery', {
       inline_query_id: query.id,
-      cache_time: 1,
+      cache_time: 0,
       is_personal: true,
-      results: [{
-        type: 'cached_photo',
-        id: 'pumb-payment-photo-v14',
-        photo_file_id: cachedPhotoFileId,
-        caption: caption(),
-        parse_mode: 'HTML',
-        reply_markup: keyboard(),
-      }],
+      results: [],
     });
-  } catch (error) {
-    console.error('Inline photo preparation failed:', error.message);
-    await bot('answerInlineQuery', {
-      inline_query_id: query.id,
-      cache_time: 1,
-      is_personal: true,
-      results: [{
-        type: 'article',
-        id: 'pumb-payment-article-v14',
-        title: `PUMB • ${VISUAL_HOLDER}`,
-        description: VISUAL_NUMBER,
-        input_message_content: {
-          message_text: caption(),
-          parse_mode: 'HTML',
-        },
-        reply_markup: keyboard(),
-      }],
-    });
+    return;
   }
+
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    try {
+      const fileId = await ensureCachedPhotoFileId(userId, attempt > 1);
+      await answerInlineWithPhoto(query.id, fileId);
+      console.log(`Inline photo result ready; attempt=${attempt}; query=${queryText || '[empty]'}`);
+      return;
+    } catch (error) {
+      lastError = error;
+      cachedPhotoFileId = null;
+      console.error(`Inline cached photo attempt ${attempt} failed: ${error.message}`);
+    }
+  }
+
+  console.error(`Inline photo sharing failed completely: ${lastError?.message ?? 'unknown error'}`);
+  await bot('answerInlineQuery', {
+    inline_query_id: query.id,
+    cache_time: 0,
+    is_personal: true,
+    results: [],
+    button: {
+      text: 'Открыть PUMB Card',
+      start_parameter: 'share',
+    },
+  });
 }
 
 async function handleUpdate(update) {
