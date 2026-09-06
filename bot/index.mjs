@@ -67,7 +67,7 @@ function caption(card) {
 }
 
 async function renderCardJpeg(card) {
-  const number = escapeXml(card.number);
+  const number = escapeXml(card.raw);
   const latinHolder = 'Yeroshov Ivan Sergiyovich';
 
   const svg = `
