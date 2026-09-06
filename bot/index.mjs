@@ -2,7 +2,7 @@ import http from 'node:http';
 
 const TOKEN = process.env.BOT_TOKEN;
 const CARD_URL = 'https://saitama21.github.io/pumb-card/';
-const PREVIEW_URL = 'https://raw.githubusercontent.com/Saitama21/pumb-card/main/og-preview.png';
+const PREVIEW_URL = 'https://raw.githubusercontent.com/Saitama21/pumb-card/main/pumb-telegram-card.jpg';
 const API = TOKEN ? `https://api.telegram.org/bot${TOKEN}` : null;
 let cachedPhotoFileId = null;
 
@@ -64,7 +64,7 @@ async function downloadPreview() {
   });
   if (!response.ok) throw new Error(`Preview returned ${response.status}`);
   const bytes = await response.arrayBuffer();
-  return new Blob([bytes], { type: response.headers.get('content-type') || 'image/png' });
+  return new Blob([bytes], { type: 'image/jpeg' });
 }
 
 async function sendPhotoUpload(chatId, card) {
@@ -73,7 +73,7 @@ async function sendPhotoUpload(chatId, card) {
   form.append('caption', caption(card));
   form.append('parse_mode', 'HTML');
   form.append('reply_markup', JSON.stringify(keyboard(card.raw)));
-  form.append('photo', await downloadPreview(), 'pumb-card.png');
+  form.append('photo', await downloadPreview(), 'pumb-card.jpg');
   const sent = await botMultipart('sendPhoto', form);
   const photos = sent.photo || [];
   if (photos.length) cachedPhotoFileId = photos[photos.length - 1].file_id;
@@ -122,7 +122,7 @@ async function handleInlineQuery(query) {
         is_personal: true,
         results: [{
           type: 'cached_photo',
-          id: 'pumb-card-photo-v5',
+          id: 'pumb-card-photo-v6',
           photo_file_id: cachedPhotoFileId,
           caption: caption(card),
           parse_mode: 'HTML',
@@ -140,7 +140,7 @@ async function handleInlineQuery(query) {
     is_personal: true,
     results: [{
       type: 'article',
-      id: 'pumb-card-article-v5',
+      id: 'pumb-card-article-v6',
       title: `ПУМБ • ${card.holder}`,
       description: card.number,
       input_message_content: { message_text: caption(card), parse_mode: 'HTML' },
