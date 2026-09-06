@@ -254,21 +254,41 @@ async function renderCardJpeg() {
     .toBuffer();
 }
 
-async function sendPhotoUpload(chatId) {
+async function uploadRenderedPhoto(chatId, { temporary = false } = {}) {
   const image = await renderCardJpeg();
   console.log(`Rendered JPEG: ${image.length} bytes; magic=${image.subarray(0, 3).toString('hex')}`);
 
   const form = new FormData();
   form.append('chat_id', String(chatId));
-  form.append('caption', caption());
-  form.append('parse_mode', 'HTML');
-  form.append('reply_markup', JSON.stringify(keyboard()));
+  form.append('disable_notification', 'true');
+  if (!temporary) {
+    form.append('caption', caption());
+    form.append('parse_mode', 'HTML');
+    form.append('reply_markup', JSON.stringify(keyboard()));
+  }
   form.append('photo', new Blob([image], { type: 'image/jpeg' }), 'pumb-payment-widget.jpg');
 
   const sent = await botMultipart('sendPhoto', form);
   const photos = sent.photo || [];
   if (photos.length) cachedPhotoFileId = photos[photos.length - 1].file_id;
+
+  if (temporary) {
+    try {
+      await bot('deleteMessage', { chat_id: chatId, message_id: sent.message_id });
+    } catch (error) {
+      console.warn('Temporary cache message cleanup failed:', error.message);
+    }
+  }
+
   return sent;
+}
+
+async function ensureCachedPhotoFileId(chatId) {
+  if (cachedPhotoFileId) return cachedPhotoFileId;
+  console.log(`Priming Telegram photo cache via chat ${chatId}`);
+  await uploadRenderedPhoto(chatId, { temporary: true });
+  if (!cachedPhotoFileId) throw new Error('Telegram did not return a photo file_id');
+  return cachedPhotoFileId;
 }
 
 async function sendCard(chatId) {
@@ -281,7 +301,7 @@ async function sendCard(chatId) {
           parse_mode: 'HTML',
           reply_markup: keyboard(),
         })
-      : await sendPhotoUpload(chatId);
+      : await uploadRenderedPhoto(chatId);
 
     console.log(`Photo card sent to ${chatId}; message=${sent.message_id}`);
   } catch (error) {
@@ -308,45 +328,47 @@ async function handleMessage(message) {
 
 async function handleInlineQuery(query) {
   const queryText = query.query?.trim().toLowerCase() ?? '';
-  console.log(`Inline query from ${query.from?.id ?? 'unknown'}: ${queryText || '[empty]'}`);
+  const userId = query.from?.id;
+  console.log(`Inline query from ${userId ?? 'unknown'}: ${queryText || '[empty]'}`);
 
-  if (cachedPhotoFileId) {
-    try {
-      await bot('answerInlineQuery', {
-        inline_query_id: query.id,
-        cache_time: 1,
-        is_personal: true,
-        results: [{
-          type: 'cached_photo',
-          id: 'pumb-payment-photo-v13',
-          photo_file_id: cachedPhotoFileId,
-          caption: caption(),
-          parse_mode: 'HTML',
-          reply_markup: keyboard(),
-        }],
-      });
-      return;
-    } catch (error) {
-      console.warn('Inline cached photo failed:', error.message);
+  try {
+    if (!cachedPhotoFileId) {
+      if (!userId) throw new Error('Inline query has no sender id');
+      await ensureCachedPhotoFileId(userId);
     }
-  }
 
-  await bot('answerInlineQuery', {
-    inline_query_id: query.id,
-    cache_time: 1,
-    is_personal: true,
-    results: [{
-      type: 'article',
-      id: 'pumb-payment-article-v13',
-      title: `PUMB • ${VISUAL_HOLDER}`,
-      description: VISUAL_NUMBER,
-      input_message_content: {
-        message_text: caption(),
+    await bot('answerInlineQuery', {
+      inline_query_id: query.id,
+      cache_time: 1,
+      is_personal: true,
+      results: [{
+        type: 'cached_photo',
+        id: 'pumb-payment-photo-v14',
+        photo_file_id: cachedPhotoFileId,
+        caption: caption(),
         parse_mode: 'HTML',
-      },
-      reply_markup: keyboard(),
-    }],
-  });
+        reply_markup: keyboard(),
+      }],
+    });
+  } catch (error) {
+    console.error('Inline photo preparation failed:', error.message);
+    await bot('answerInlineQuery', {
+      inline_query_id: query.id,
+      cache_time: 1,
+      is_personal: true,
+      results: [{
+        type: 'article',
+        id: 'pumb-payment-article-v14',
+        title: `PUMB • ${VISUAL_HOLDER}`,
+        description: VISUAL_NUMBER,
+        input_message_content: {
+          message_text: caption(),
+          parse_mode: 'HTML',
+        },
+        reply_markup: keyboard(),
+      }],
+    });
+  }
 }
 
 async function handleUpdate(update) {
