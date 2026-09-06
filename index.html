@@ -3,69 +3,242 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#d80d2f" />
-  <meta name="color-scheme" content="light dark" />
-  <title>ПУМБ — номер картки</title>
+  <meta name="theme-color" content="#d7193f" />
+  <title>ПУМБ — реквізити картки</title>
   <style>
-    :root{--red:#d80d2f;--red2:#b80022;--bg:#f5f6f8;--card:#fff;--text:#121417;--muted:#69707a;--line:#e2e5e9;--shadow:0 18px 55px rgba(25,31,40,.14)}
-    @media (prefers-color-scheme:dark){:root{--bg:#0f1115;--card:#171a1f;--text:#f5f7fa;--muted:#a6adb7;--line:#2a2f36;--shadow:0 18px 55px rgba(0,0,0,.35)}}
-    *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text)}
-    body{display:grid;place-items:center;padding:24px;overflow-x:hidden}
-    .wrap{width:min(100%,560px)}
-    .brand{display:flex;align-items:center;gap:14px;margin:0 0 18px 4px}
-    .logo{font-size:34px;font-weight:900;letter-spacing:-2px;color:var(--red);line-height:1}.tag{font-size:14px;color:var(--muted);font-weight:600}
-    .card{position:relative;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:28px;padding:26px;box-shadow:var(--shadow)}
-    .card:before,.card:after{content:"";position:absolute;border-radius:999px;background:linear-gradient(135deg,var(--red),#ff3656);opacity:.95;pointer-events:none}
-    .card:before{width:190px;height:190px;right:-105px;top:-110px}.card:after{width:150px;height:150px;left:-90px;bottom:-105px}
-    .label{font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:800;margin-bottom:12px}
-    .number{position:relative;z-index:1;font:800 clamp(26px,7vw,42px)/1.15 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.03em;word-break:break-word;margin:0 0 22px}
-    .actions{position:relative;z-index:1;display:grid;grid-template-columns:1fr;gap:10px}
-    button{appearance:none;border:0;border-radius:16px;min-height:54px;padding:0 18px;font-size:17px;font-weight:800;cursor:pointer;transition:.18s ease;touch-action:manipulation}
-    .copy{background:linear-gradient(180deg,var(--red),var(--red2));color:white;box-shadow:0 10px 24px rgba(216,13,47,.24)}
-    .copy:active{transform:scale(.985)}.copy.done{background:#148c4b}
-    .hint{position:relative;z-index:1;margin:16px 2px 0;color:var(--muted);font-size:13px;line-height:1.5}
-    .toast{margin:14px 0 0;text-align:center;min-height:22px;font-size:14px;font-weight:700;color:var(--muted)}
-    .fine{margin-top:16px;text-align:center;font-size:12px;color:var(--muted)}
+    :root{
+      --pumb:#d7193f;
+      --pumb-dark:#b91435;
+      --bg:#f3f4f6;
+      --surface:#ffffff;
+      --text:#16181d;
+      --muted:#727780;
+      --line:#e7e8eb;
+      --success:#198754;
+      --shadow:0 22px 60px rgba(28,33,43,.13);
+    }
+    @media (prefers-color-scheme:dark){
+      :root{
+        --bg:#0f1114;
+        --surface:#191c21;
+        --text:#f6f7f8;
+        --muted:#a3a8b0;
+        --line:#2a2e35;
+        --shadow:0 24px 70px rgba(0,0,0,.4);
+      }
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%}
+    body{
+      display:grid;
+      place-items:center;
+      padding:max(20px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
+      background:var(--bg);
+      color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    }
+    .wrap{width:min(100%,620px)}
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:13px;
+      margin:0 4px 16px;
+    }
+    .logo{
+      color:var(--pumb);
+      font-size:34px;
+      line-height:1;
+      font-weight:900;
+      letter-spacing:-2px;
+    }
+    .divider{width:1px;height:30px;background:var(--line)}
+    .tag{font-size:13px;line-height:1.2;color:var(--muted);font-weight:650}
+
+    .panel{
+      position:relative;
+      overflow:hidden;
+      padding:26px;
+      background:var(--surface);
+      border:1px solid var(--line);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      isolation:isolate;
+    }
+    .panel::after{
+      content:"";
+      position:absolute;
+      width:220px;height:220px;
+      border-radius:50%;
+      right:-120px;top:-130px;
+      background:radial-gradient(circle at 35% 35%,#f34466 0,var(--pumb) 52%,var(--pumb-dark) 100%);
+      opacity:.96;
+      z-index:-1;
+    }
+    .eyebrow{
+      margin:0 0 8px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+    .holder{
+      margin:0 0 24px;
+      font-size:clamp(20px,4.8vw,28px);
+      line-height:1.2;
+      font-weight:800;
+      letter-spacing:-.02em;
+    }
+    .number-box{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+      padding:14px 14px 14px 17px;
+      border:1px solid var(--line);
+      background:color-mix(in srgb,var(--surface) 94%,var(--bg));
+      border-radius:18px;
+    }
+    .number{
+      flex:1 1 auto;
+      min-width:0;
+      white-space:nowrap;
+      overflow:hidden;
+      color:var(--text);
+      font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+      font-size:clamp(17px,5.1vw,27px);
+      line-height:1;
+      font-weight:800;
+      letter-spacing:-.025em;
+      font-variant-numeric:tabular-nums;
+    }
+    .copy{
+      flex:0 0 auto;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      min-height:48px;
+      padding:0 16px;
+      border:0;
+      border-radius:14px;
+      background:linear-gradient(180deg,#e01b45,var(--pumb-dark));
+      color:#fff;
+      box-shadow:0 10px 22px rgba(215,25,63,.22);
+      font:800 15px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      cursor:pointer;
+      transition:transform .16s ease,filter .16s ease,background .2s ease;
+      touch-action:manipulation;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .copy:hover{filter:brightness(1.04)}
+    .copy:active{transform:scale(.975)}
+    .copy.done{background:var(--success)}
+    .copy svg{width:19px;height:19px;stroke:currentColor;stroke-width:2;fill:none}
+    .status{
+      min-height:22px;
+      margin:12px 2px 0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.45;
+      font-weight:650;
+    }
+    .status.ok{color:var(--success)}
+    .fine{margin:14px 4px 0;color:var(--muted);font-size:11px;line-height:1.45;text-align:center}
+
+    @media (max-width:430px){
+      .panel{padding:22px 18px;border-radius:24px}
+      .holder{margin-bottom:18px}
+      .number-box{gap:8px;padding:12px}
+      .copy{width:48px;padding:0;border-radius:13px}
+      .copy .copy-text{display:none}
+      .number{font-size:clamp(16px,5.1vw,21px)}
+    }
+    @media (max-width:340px){
+      .panel{padding-inline:14px}
+      .number-box{padding:11px 10px}
+      .number{font-size:15.2px;letter-spacing:-.04em}
+    }
+    @media (prefers-reduced-motion:reduce){.copy{transition:none}}
   </style>
 </head>
 <body>
   <main class="wrap">
-    <div class="brand" aria-label="Оформлення у стилі ПУМБ">
-      <div class="logo">ПУМБ</div><div class="tag">Банк для життя</div>
-    </div>
-    <section class="card">
-      <div class="label">Номер картки</div>
-      <div class="number" id="number">4314 1402 1172 6887</div>
-      <div class="actions">
-        <button class="copy" id="copy" type="button">Скопіювати номер</button>
+    <header class="brand" aria-label="ПУМБ">
+      <div class="logo">ПУМБ</div>
+      <div class="divider" aria-hidden="true"></div>
+      <div class="tag">Банк<br>для життя</div>
+    </header>
+
+    <section class="panel" aria-labelledby="card-title">
+      <p class="eyebrow">Одержувач</p>
+      <h1 class="holder" id="card-title">Ерошов Иван Сергеевич</h1>
+
+      <p class="eyebrow">Номер картки</p>
+      <div class="number-box">
+        <div class="number" id="number" aria-label="Номер картки 4314 1402 1172 6887">4314 1402 1172 6887</div>
+        <button class="copy" id="copy" type="button" aria-label="Скопіювати номер картки">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="8" y="8" width="11" height="11" rx="2"></rect>
+            <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path>
+          </svg>
+          <span class="copy-text">Скопіювати</span>
+        </button>
       </div>
-      <p class="hint">Натисни кнопку — у буфер копіюється номер без пробілів: <strong>4314140211726887</strong>.</p>
-      <div class="toast" id="toast" aria-live="polite"></div>
+      <div class="status" id="status" aria-live="polite">Натисни кнопку — скопіюється номер без пробілів.</div>
     </section>
-    <div class="fine">Неофіційна сторінка для зручного копіювання номера.</div>
+
+    <div class="fine">Неофіційна сторінка для зручного копіювання реквізитів.</div>
   </main>
-<script>
-(() => {
-  const raw = '4314140211726887';
-  const btn = document.getElementById('copy');
-  const toast = document.getElementById('toast');
-  async function copyText(){
-    try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(raw);
-      } else {
-        const ta=document.createElement('textarea');
-        ta.value=raw;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.opacity='0';
-        document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
+
+  <script>
+    (() => {
+      const raw = '4314140211726887';
+      const btn = document.getElementById('copy');
+      const status = document.getElementById('status');
+      const label = btn.querySelector('.copy-text');
+      let resetTimer;
+
+      async function writeClipboard(text){
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          return;
+        }
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly','');
+        ta.style.position='fixed';
+        ta.style.opacity='0';
+        ta.style.pointerEvents='none';
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand('copy');
+        ta.remove();
+        if (!ok) throw new Error('copy failed');
       }
-      btn.textContent='Скопійовано ✓';btn.classList.add('done');toast.textContent='Номер скопійовано в буфер обміну';
-      setTimeout(()=>{btn.textContent='Скопіювати номер';btn.classList.remove('done');toast.textContent='';},1800);
-    } catch(e){
-      toast.textContent='Не вдалося скопіювати автоматично. Затисни номер і вибери «Копіювати».';
-    }
-  }
-  btn.addEventListener('click', copyText);
-})();
-</script>
+
+      async function copyNumber(){
+        clearTimeout(resetTimer);
+        try {
+          await writeClipboard(raw);
+          btn.classList.add('done');
+          status.classList.add('ok');
+          status.textContent='Номер скопійовано ✓';
+          if (label) label.textContent='Готово';
+          resetTimer=setTimeout(() => {
+            btn.classList.remove('done');
+            status.classList.remove('ok');
+            status.textContent='Натисни кнопку — скопіюється номер без пробілів.';
+            if (label) label.textContent='Скопіювати';
+          },1800);
+        } catch (error) {
+          status.classList.remove('ok');
+          status.textContent='Не вдалося скопіювати автоматично. Затисни номер і вибери «Копіювати».';
+        }
+      }
+
+      btn.addEventListener('click',copyNumber);
+    })();
+  </script>
 </body>
 </html>
