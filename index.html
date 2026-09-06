@@ -196,8 +196,7 @@
   <script>
     (() => {
       const tg=window.Telegram?.WebApp;
-      const PROFILE_URL='https://t.me/Yeroshov';
-
+      const PROFILE_URL='https://t.me/Yeroshov?profile';
       function syncViewport(){
         const height=tg?.viewportStableHeight||tg?.viewportHeight||window.visualViewport?.height||window.innerHeight;
         if(height) document.documentElement.style.setProperty('--app-height',`${Math.round(height)}px`);
