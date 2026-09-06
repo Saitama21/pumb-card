@@ -8,5 +8,8 @@
   },
   "scripts": {
     "start": "node bot/index.mjs"
+  },
+  "dependencies": {
+    "sharp": "^0.34.3"
   }
 }
