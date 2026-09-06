@@ -16,12 +16,6 @@
   <meta property="og:image:type" content="image/png" />
   <meta property="og:image:width" content="600" />
   <meta property="og:image:height" content="315" />
-  <meta property="og:image:alt" content="ПУМБ — реквізити картки Ерошов Иван Сергеевич" />
-
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Ерошов Иван Сергеевич — ПУМБ" />
-  <meta name="twitter:description" content="Картка 4314 1402 1172 6887 · Натисніть, щоб швидко скопіювати номер." />
-  <meta name="twitter:image" content="https://saitama21.github.io/pumb-card/og-preview.png?v=2" />
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -31,7 +25,6 @@
       --pumb-2:#b80d35;
       --bg:#0d0f13;
       --surface:rgba(27,30,36,.72);
-      --surface-strong:rgba(30,33,39,.9);
       --text:#f7f8fa;
       --muted:#a6abb3;
       --muted-2:#767c85;
@@ -44,7 +37,6 @@
     *{box-sizing:border-box}
     html,body{margin:0;width:100%;min-height:100%;background:var(--bg)}
     html{color-scheme:dark}
-
     body{
       min-height:var(--app-height);
       display:flex;
@@ -77,41 +69,16 @@
 
     .wrap{
       width:min(100%,560px);
-      padding-top:clamp(28px,5.2vh,66px);
+      padding-top:clamp(24px,4.5vh,56px);
       position:relative;
       z-index:1;
       animation:app-in .52s cubic-bezier(.2,.8,.2,1) both;
     }
 
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:13px;
-      margin:0 8px 18px;
-    }
-
-    .logo{
-      color:var(--pumb);
-      font-size:clamp(35px,9vw,48px);
-      line-height:.95;
-      font-weight:900;
-      letter-spacing:-2.4px;
-      text-shadow:0 8px 28px rgba(229,27,69,.18);
-    }
-
-    .divider{
-      width:1px;
-      height:34px;
-      background:linear-gradient(180deg,transparent,var(--line-strong),transparent);
-    }
-
-    .tag{
-      font-size:14px;
-      line-height:1.15;
-      color:var(--muted);
-      font-weight:760;
-      letter-spacing:-.01em;
-    }
+    .brand{display:flex;align-items:center;gap:13px;margin:0 8px 18px}
+    .logo{color:var(--pumb);font-size:clamp(35px,9vw,48px);line-height:.95;font-weight:900;letter-spacing:-2.4px;text-shadow:0 8px 28px rgba(229,27,69,.18)}
+    .divider{width:1px;height:34px;background:linear-gradient(180deg,transparent,var(--line-strong),transparent)}
+    .tag{font-size:14px;line-height:1.15;color:var(--muted);font-weight:760}
 
     .panel{
       position:relative;
@@ -125,226 +92,64 @@
         var(--surface);
       -webkit-backdrop-filter:blur(30px) saturate(135%);
       backdrop-filter:blur(30px) saturate(135%);
-      box-shadow:
-        0 30px 90px rgba(0,0,0,.46),
-        inset 0 1px 0 rgba(255,255,255,.08),
-        inset 0 -1px 0 rgba(255,255,255,.02);
+      box-shadow:0 30px 90px rgba(0,0,0,.46),inset 0 1px 0 rgba(255,255,255,.08),inset 0 -1px 0 rgba(255,255,255,.02);
     }
+    .panel::before{content:"";position:absolute;inset:-1px;z-index:-2;background:radial-gradient(90% 48% at 0 0,rgba(255,255,255,.105),transparent 62%),radial-gradient(46% 42% at 100% 0,rgba(229,27,69,.23),transparent 70%);pointer-events:none}
+    .panel::after{content:"";position:absolute;width:260px;height:260px;right:-132px;top:-136px;border-radius:50%;z-index:-1;background:radial-gradient(circle at 32% 32%,#ff4168 0%,var(--pumb) 48%,var(--pumb-2) 100%);box-shadow:0 0 72px rgba(229,27,69,.25)}
 
-    .panel::before{
-      content:"";
-      position:absolute;
-      inset:-1px;
-      z-index:-2;
-      background:
-        radial-gradient(90% 48% at 0% 0%,rgba(255,255,255,.105),transparent 62%),
-        radial-gradient(46% 42% at 100% 0%,rgba(229,27,69,.23),transparent 70%);
-      pointer-events:none;
-    }
+    .shine{position:absolute;inset:0;pointer-events:none;border-radius:inherit;overflow:hidden}
+    .shine::after{content:"";position:absolute;width:66%;height:190%;top:-52%;left:-72%;transform:rotate(18deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.055),transparent);animation:shine 7s ease-in-out 1.2s infinite}
 
-    .panel::after{
-      content:"";
-      position:absolute;
-      width:260px;
-      height:260px;
-      right:-132px;
-      top:-136px;
-      border-radius:50%;
-      z-index:-1;
-      background:radial-gradient(circle at 32% 32%,#ff4168 0%,var(--pumb) 48%,var(--pumb-2) 100%);
-      box-shadow:0 0 72px rgba(229,27,69,.25);
-    }
+    .eyebrow{margin:0 0 9px;color:var(--muted);font-size:12px;font-weight:850;letter-spacing:.16em;text-transform:uppercase}
+    .holder{margin:0 0 28px;max-width:88%;font-size:clamp(23px,5.8vw,32px);line-height:1.08;font-weight:850;letter-spacing:-.03em;text-wrap:balance}
 
-    .shine{
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      border-radius:inherit;
-      overflow:hidden;
-    }
+    .number-box{display:flex;align-items:center;gap:12px;min-width:0;padding:12px 12px 12px 18px;border:1px solid rgba(255,255,255,.105);border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.022)),rgba(8,10,14,.22);-webkit-backdrop-filter:blur(24px) saturate(130%);backdrop-filter:blur(24px) saturate(130%);box-shadow:inset 0 1px 0 rgba(255,255,255,.055),0 12px 38px rgba(0,0,0,.18)}
+    .number{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;color:var(--text);font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;font-size:clamp(17px,5.4vw,28px);line-height:1;font-weight:800;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
 
-    .shine::after{
-      content:"";
-      position:absolute;
-      width:66%;
-      height:190%;
-      top:-52%;
-      left:-72%;
-      transform:rotate(18deg);
-      background:linear-gradient(90deg,transparent,rgba(255,255,255,.055),transparent);
-      animation:shine 7s ease-in-out 1.2s infinite;
-    }
+    .copy{flex:0 0 auto;width:58px;min-height:58px;display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.10);border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.09),transparent 28%),linear-gradient(180deg,#ee244d,var(--pumb-2));color:#fff;box-shadow:0 14px 32px rgba(229,27,69,.26),inset 0 1px 0 rgba(255,255,255,.14);cursor:pointer;transition:transform .18s ease,background .2s ease;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+    .copy:active,.return-profile:active{transform:scale(.965)}
+    .copy.done{background:linear-gradient(180deg,#39c987,#239b66)}
+    .copy svg{width:23px;height:23px;stroke:currentColor;stroke-width:2;fill:none}
 
-    .eyebrow{
-      margin:0 0 9px;
-      color:var(--muted);
-      font-size:12px;
-      font-weight:850;
-      letter-spacing:.16em;
-      text-transform:uppercase;
-    }
+    .status{min-height:22px;margin:14px 3px 0;color:var(--muted);font-size:13px;line-height:1.45;font-weight:650;transition:color .2s ease}
+    .status.ok{color:#74ddb0}
 
-    .holder{
-      margin:0 0 28px;
-      max-width:88%;
-      font-size:clamp(23px,5.8vw,32px);
-      line-height:1.08;
-      font-weight:850;
-      letter-spacing:-.03em;
-      text-wrap:balance;
-    }
-
-    .number-box{
+    .return-profile{
+      width:100%;
+      margin-top:16px;
+      min-height:58px;
       display:flex;
       align-items:center;
-      gap:12px;
-      min-width:0;
-      padding:12px 12px 12px 18px;
-      border:1px solid rgba(255,255,255,.105);
-      border-radius:20px;
-      background:
-        linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.022)),
-        rgba(8,10,14,.22);
-      -webkit-backdrop-filter:blur(24px) saturate(130%);
-      backdrop-filter:blur(24px) saturate(130%);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.055),
-        0 12px 38px rgba(0,0,0,.18);
-    }
-
-    .number{
-      flex:1 1 auto;
-      min-width:0;
-      white-space:nowrap;
-      overflow:hidden;
-      color:var(--text);
-      font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
-      font-size:clamp(17px,5.4vw,28px);
-      line-height:1;
-      font-weight:800;
-      letter-spacing:-.035em;
-      font-variant-numeric:tabular-nums;
-    }
-
-    .copy{
-      flex:0 0 auto;
-      width:58px;
-      min-height:58px;
-      display:inline-flex;
-      align-items:center;
       justify-content:center;
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:18px;
-      background:
-        linear-gradient(180deg,rgba(255,255,255,.09),transparent 28%),
-        linear-gradient(180deg,#ee244d,var(--pumb-2));
+      gap:10px;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:20px;
+      background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.035));
       color:#fff;
-      box-shadow:
-        0 14px 32px rgba(229,27,69,.26),
-        inset 0 1px 0 rgba(255,255,255,.14);
+      -webkit-backdrop-filter:blur(24px) saturate(135%);
+      backdrop-filter:blur(24px) saturate(135%);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 14px 40px rgba(0,0,0,.18);
+      font:750 16px/1.15 -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
       cursor:pointer;
-      transition:transform .18s ease,filter .18s ease,background .2s ease,box-shadow .2s ease;
+      transition:transform .18s ease,background .18s ease;
       touch-action:manipulation;
       -webkit-tap-highlight-color:transparent;
     }
+    .return-profile svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+    .return-profile .handle{color:#b8bdc5;font-weight:650}
 
-    .copy:active{transform:scale(.955)}
-    .copy.done{
-      background:linear-gradient(180deg,#39c987,#239b66);
-      box-shadow:0 14px 32px rgba(49,185,121,.20),inset 0 1px 0 rgba(255,255,255,.14);
-    }
-    .copy svg{width:23px;height:23px;stroke:currentColor;stroke-width:2;fill:none}
-    .copy .copy-text{display:none}
+    .fine{margin:14px 8px 0;color:var(--muted-2);font-size:11px;line-height:1.5;text-align:center}
 
-    .status{
-      min-height:22px;
-      margin:14px 3px 0;
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.45;
-      font-weight:650;
-      transition:color .2s ease;
-    }
-    .status.ok{color:#74ddb0}
+    .toast{position:fixed;z-index:10;left:50%;bottom:max(26px,calc(var(--tg-content-safe-area-inset-bottom,0px) + 22px));transform:translate(-50%,18px) scale(.96);display:flex;align-items:center;gap:9px;padding:12px 15px;border:1px solid rgba(255,255,255,.12);border-radius:18px;background:rgba(27,30,36,.78);-webkit-backdrop-filter:blur(24px) saturate(140%);backdrop-filter:blur(24px) saturate(140%);box-shadow:0 18px 48px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.07);color:#f6f7f8;font-size:13px;font-weight:750;opacity:0;pointer-events:none;transition:opacity .2s ease,transform .28s cubic-bezier(.2,.8,.2,1)}
+    .toast.show{opacity:1;transform:translate(-50%,0) scale(1)}
+    .toast-dot{width:8px;height:8px;border-radius:50%;background:var(--success);box-shadow:0 0 18px rgba(49,185,121,.55)}
 
-    .fine{
-      margin:16px 8px 0;
-      color:var(--muted-2);
-      font-size:11px;
-      line-height:1.5;
-      text-align:center;
-    }
+    @keyframes app-in{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+    @keyframes shine{0%,58%{transform:translateX(0) rotate(18deg);opacity:0}64%{opacity:1}82%,100%{transform:translateX(250%) rotate(18deg);opacity:0}}
 
-    .toast{
-      position:fixed;
-      z-index:10;
-      left:50%;
-      bottom:max(26px,calc(var(--tg-content-safe-area-inset-bottom,0px) + 22px));
-      transform:translate(-50%,18px) scale(.96);
-      display:flex;
-      align-items:center;
-      gap:9px;
-      padding:12px 15px;
-      border:1px solid rgba(255,255,255,.12);
-      border-radius:18px;
-      background:rgba(27,30,36,.78);
-      -webkit-backdrop-filter:blur(24px) saturate(140%);
-      backdrop-filter:blur(24px) saturate(140%);
-      box-shadow:0 18px 48px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.07);
-      color:#f6f7f8;
-      font-size:13px;
-      font-weight:750;
-      opacity:0;
-      pointer-events:none;
-      transition:opacity .2s ease,transform .28s cubic-bezier(.2,.8,.2,1);
-    }
-
-    .toast.show{
-      opacity:1;
-      transform:translate(-50%,0) scale(1);
-    }
-
-    .toast-dot{
-      width:8px;
-      height:8px;
-      border-radius:50%;
-      background:var(--success);
-      box-shadow:0 0 18px rgba(49,185,121,.55);
-    }
-
-    @keyframes app-in{
-      from{opacity:0;transform:translateY(18px) scale(.985)}
-      to{opacity:1;transform:translateY(0) scale(1)}
-    }
-
-    @keyframes shine{
-      0%,58%{transform:translateX(0) rotate(18deg);opacity:0}
-      64%{opacity:1}
-      82%{transform:translateX(250%) rotate(18deg);opacity:0}
-      100%{transform:translateX(250%) rotate(18deg);opacity:0}
-    }
-
-    @media (max-width:430px){
-      .wrap{padding-top:clamp(20px,4vh,42px)}
-      .brand{margin-bottom:16px}
-      .panel{padding:24px 20px;border-radius:28px}
-      .holder{margin-bottom:24px;max-width:92%}
-      .number-box{gap:9px;padding:11px 11px 11px 15px}
-      .copy{width:56px;min-height:56px;border-radius:17px}
-      .number{font-size:clamp(16px,5vw,22px)}
-    }
-
-    @media (max-width:360px){
-      .panel{padding:21px 16px}
-      .number-box{padding-left:12px}
-      .number{font-size:15.2px;letter-spacing:-.045em}
-      .copy{width:52px;min-height:52px}
-    }
-
-    @media (prefers-reduced-motion:reduce){
-      .wrap,.shine::after{animation:none}
-      .copy,.toast{transition:none}
-    }
+    @media (max-width:430px){.wrap{padding-top:clamp(18px,3.4vh,34px)}.brand{margin-bottom:16px}.panel{padding:24px 20px;border-radius:28px}.holder{margin-bottom:24px;max-width:92%}.number-box{gap:9px;padding:11px 11px 11px 15px}.copy{width:56px;min-height:56px;border-radius:17px}.number{font-size:clamp(16px,5vw,22px)}.return-profile{min-height:56px;border-radius:18px}}
+    @media (max-width:360px){.panel{padding:21px 16px}.number-box{padding-left:12px}.number{font-size:15.2px;letter-spacing:-.045em}.copy{width:52px;min-height:52px}.return-profile{font-size:15px}}
+    @media (prefers-reduced-motion:reduce){.wrap,.shine::after{animation:none}.copy,.toast,.return-profile{transition:none}}
   </style>
 </head>
 <body>
@@ -369,12 +174,16 @@
             <rect x="8" y="8" width="11" height="11" rx="2"></rect>
             <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path>
           </svg>
-          <span class="copy-text">Скопіювати</span>
         </button>
       </div>
 
       <div class="status" id="status" aria-live="polite">Натисни кнопку — скопіюється номер без пробілів.</div>
     </section>
+
+    <button class="return-profile" id="returnProfile" type="button" aria-label="Повернутися до профілю Yeroshov">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+      <span>Вернуться в профиль <span class="handle">@Yeroshov</span></span>
+    </button>
 
     <div class="fine">Неофіційна сторінка для зручного копіювання реквізитів.</div>
   </main>
@@ -386,25 +195,24 @@
 
   <script>
     (() => {
-      const tg = window.Telegram?.WebApp;
+      const tg=window.Telegram?.WebApp;
+      const PROFILE_URL='https://t.me/Yeroshov';
 
       function syncViewport(){
-        const height = tg?.viewportStableHeight || tg?.viewportHeight || window.visualViewport?.height || window.innerHeight;
-        if (height) document.documentElement.style.setProperty('--app-height', `${Math.round(height)}px`);
+        const height=tg?.viewportStableHeight||tg?.viewportHeight||window.visualViewport?.height||window.innerHeight;
+        if(height) document.documentElement.style.setProperty('--app-height',`${Math.round(height)}px`);
       }
 
-      if (tg) {
-        try {
+      if(tg){
+        try{
           tg.ready();
           tg.expand();
           tg.setHeaderColor?.('#0d0f13');
           tg.setBackgroundColor?.('#0d0f13');
           tg.disableVerticalSwipes?.();
-          if (typeof tg.requestFullscreen === 'function') tg.requestFullscreen();
+          if(typeof tg.requestFullscreen==='function') tg.requestFullscreen();
           tg.onEvent?.('viewportChanged',syncViewport);
-        } catch (error) {
-          console.warn('Telegram Mini App init:',error);
-        }
+        }catch(error){console.warn('Telegram Mini App init:',error)}
       }
 
       syncViewport();
@@ -415,58 +223,39 @@
       const btn=document.getElementById('copy');
       const status=document.getElementById('status');
       const toast=document.getElementById('toast');
+      const returnProfile=document.getElementById('returnProfile');
       let resetTimer;
       let toastTimer;
 
       async function writeClipboard(text){
-        if (navigator.clipboard && window.isSecureContext) {
-          await navigator.clipboard.writeText(text);
-          return;
-        }
-
+        if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);return}
         const ta=document.createElement('textarea');
-        ta.value=text;
-        ta.setAttribute('readonly','');
-        ta.style.position='fixed';
-        ta.style.opacity='0';
-        ta.style.pointerEvents='none';
-        document.body.appendChild(ta);
-        ta.select();
-        const ok=document.execCommand('copy');
-        ta.remove();
-        if (!ok) throw new Error('copy failed');
+        ta.value=text;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.opacity='0';ta.style.pointerEvents='none';
+        document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();if(!ok) throw new Error('copy failed');
       }
 
-      function showToast(){
-        clearTimeout(toastTimer);
-        toast.classList.add('show');
-        toastTimer=setTimeout(() => toast.classList.remove('show'),1500);
-      }
+      function showToast(){clearTimeout(toastTimer);toast.classList.add('show');toastTimer=setTimeout(()=>toast.classList.remove('show'),1500)}
 
       async function copyNumber(){
         clearTimeout(resetTimer);
-        try {
+        try{
           tg?.HapticFeedback?.impactOccurred?.('light');
           await writeClipboard(raw);
-          btn.classList.add('done');
-          status.classList.add('ok');
-          status.textContent='Номер скопійовано ✓';
-          showToast();
-          tg?.HapticFeedback?.notificationOccurred?.('success');
+          btn.classList.add('done');status.classList.add('ok');status.textContent='Номер скопійовано ✓';showToast();tg?.HapticFeedback?.notificationOccurred?.('success');
+          resetTimer=setTimeout(()=>{btn.classList.remove('done');status.classList.remove('ok');status.textContent='Натисни кнопку — скопіюється номер без пробілів.'},1800);
+        }catch(error){status.classList.remove('ok');status.textContent='Не вдалося скопіювати автоматично. Затисни номер і вибери «Копіювати».';tg?.HapticFeedback?.notificationOccurred?.('error')}
+      }
 
-          resetTimer=setTimeout(() => {
-            btn.classList.remove('done');
-            status.classList.remove('ok');
-            status.textContent='Натисни кнопку — скопіюється номер без пробілів.';
-          },1800);
-        } catch (error) {
-          status.classList.remove('ok');
-          status.textContent='Не вдалося скопіювати автоматично. Затисни номер і вибери «Копіювати».';
-          tg?.HapticFeedback?.notificationOccurred?.('error');
-        }
+      function goToProfile(){
+        try{
+          tg?.HapticFeedback?.impactOccurred?.('light');
+          if(tg?.openTelegramLink){tg.openTelegramLink(PROFILE_URL);return}
+        }catch(error){console.warn('openTelegramLink:',error)}
+        window.location.href=PROFILE_URL;
       }
 
       btn.addEventListener('click',copyNumber);
+      returnProfile.addEventListener('click',goToProfile);
     })();
   </script>
 </body>
