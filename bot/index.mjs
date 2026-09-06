@@ -1,8 +1,8 @@
 import http from 'node:http';
+import sharp from 'sharp';
 
 const TOKEN = process.env.BOT_TOKEN;
 const CARD_URL = 'https://saitama21.github.io/pumb-card/';
-const PREVIEW_URL = 'https://raw.githubusercontent.com/Saitama21/pumb-card/main/pumb-telegram-card.jpg';
 const API = TOKEN ? `https://api.telegram.org/bot${TOKEN}` : null;
 let cachedPhotoFileId = null;
 
@@ -13,6 +13,15 @@ if (!TOKEN) {
 
 function escapeHtml(value = '') {
   return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+}
+
+function escapeXml(value = '') {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&apos;');
 }
 
 async function bot(method, params = {}) {
@@ -57,23 +66,65 @@ function caption(card) {
   return `<b>${escapeHtml(card.holder)}</b>\n<code>${escapeHtml(card.number)}</code>`;
 }
 
-async function downloadPreview() {
-  const response = await fetch(`${PREVIEW_URL}?v=${Date.now()}`, {
-    cache: 'no-store',
-    signal: AbortSignal.timeout(10000),
-  });
-  if (!response.ok) throw new Error(`Preview returned ${response.status}`);
-  const bytes = await response.arrayBuffer();
-  return new Blob([bytes], { type: 'image/jpeg' });
+async function renderCardJpeg(card) {
+  const holder = escapeXml(card.holder);
+  const number = escapeXml(card.number);
+
+  const svg = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#11141d"/>
+        <stop offset="1" stop-color="#241720"/>
+      </linearGradient>
+      <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#d7193f"/>
+        <stop offset="1" stop-color="#a70f31"/>
+      </linearGradient>
+      <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000" flood-opacity="0.35"/>
+      </filter>
+    </defs>
+
+    <rect width="1200" height="630" fill="url(#bg)"/>
+    <circle cx="150" cy="120" r="260" fill="#d7193f" opacity="0.12"/>
+    <circle cx="1080" cy="560" r="280" fill="#d7193f" opacity="0.08"/>
+
+    <rect x="80" y="70" width="1040" height="490" rx="44" fill="url(#card)" filter="url(#shadow)"/>
+    <rect x="80" y="70" width="1040" height="490" rx="44" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="2"/>
+
+    <text x="132" y="155" font-family="DejaVu Sans, Arial, sans-serif" font-size="66" font-weight="700" fill="#ffffff">ПУМБ</text>
+    <text x="134" y="205" font-family="DejaVu Sans, Arial, sans-serif" font-size="28" fill="#ffeef2">Реквізити картки</text>
+
+    <rect x="132" y="270" width="118" height="82" rx="14" fill="#f1d28a"/>
+    <path d="M191 270v82M132 311h118" stroke="#9b753e" stroke-width="4" opacity="0.75"/>
+    <path d="M151 292h80M151 330h80" stroke="#9b753e" stroke-width="3" opacity="0.55"/>
+
+    <text x="305" y="325" font-family="DejaVu Sans Mono, DejaVu Sans, monospace" font-size="54" font-weight="700" fill="#ffffff" letter-spacing="1">${number}</text>
+    <text x="305" y="410" font-family="DejaVu Sans, Arial, sans-serif" font-size="42" font-weight="700" fill="#ffffff">${holder}</text>
+
+    <rect x="900" y="120" width="160" height="58" rx="18" fill="#ffffff" fill-opacity="0.13"/>
+    <text x="936" y="159" font-family="DejaVu Sans, Arial, sans-serif" font-size="28" font-weight="700" fill="#ffffff">PUMB</text>
+
+    <text x="132" y="500" font-family="DejaVu Sans, Arial, sans-serif" font-size="25" fill="#ffe8ee">Натисніть кнопку нижче, щоб скопіювати номер</text>
+  </svg>`;
+
+  return sharp(Buffer.from(svg))
+    .jpeg({ quality: 92, chromaSubsampling: '4:4:4', progressive: false })
+    .toBuffer();
 }
 
 async function sendPhotoUpload(chatId, card) {
+  const image = await renderCardJpeg(card);
+  console.log(`Rendered JPEG: ${image.length} bytes; magic=${image.subarray(0, 3).toString('hex')}`);
+
   const form = new FormData();
   form.append('chat_id', String(chatId));
   form.append('caption', caption(card));
   form.append('parse_mode', 'HTML');
   form.append('reply_markup', JSON.stringify(keyboard(card.raw)));
-  form.append('photo', await downloadPreview(), 'pumb-card.jpg');
+  form.append('photo', new Blob([image], { type: 'image/jpeg' }), 'pumb-card.jpg');
+
   const sent = await botMultipart('sendPhoto', form);
   const photos = sent.photo || [];
   if (photos.length) cachedPhotoFileId = photos[photos.length - 1].file_id;
@@ -122,7 +173,7 @@ async function handleInlineQuery(query) {
         is_personal: true,
         results: [{
           type: 'cached_photo',
-          id: 'pumb-card-photo-v6',
+          id: 'pumb-card-photo-v7',
           photo_file_id: cachedPhotoFileId,
           caption: caption(card),
           parse_mode: 'HTML',
@@ -134,13 +185,14 @@ async function handleInlineQuery(query) {
       console.warn('Inline cached photo failed:', error.message);
     }
   }
+
   await bot('answerInlineQuery', {
     inline_query_id: query.id,
     cache_time: 1,
     is_personal: true,
     results: [{
       type: 'article',
-      id: 'pumb-card-article-v6',
+      id: 'pumb-card-article-v7',
       title: `ПУМБ • ${card.holder}`,
       description: card.number,
       input_message_content: { message_text: caption(card), parse_mode: 'HTML' },
@@ -160,13 +212,22 @@ async function pollingLoop() {
   await bot('deleteWebhook', { drop_pending_updates: false });
   const me = await bot('getMe');
   console.log(`Bot started: @${me.username}`);
+
   while (true) {
     try {
-      const updates = await bot('getUpdates', { offset, timeout: 50, allowed_updates: ['message', 'inline_query'] });
+      const updates = await bot('getUpdates', {
+        offset,
+        timeout: 50,
+        allowed_updates: ['message', 'inline_query'],
+      });
+
       for (const update of updates) {
         offset = update.update_id + 1;
-        try { await handleUpdate(update); }
-        catch (error) { console.error(`Update ${update.update_id} failed:`, error); }
+        try {
+          await handleUpdate(update);
+        } catch (error) {
+          console.error(`Update ${update.update_id} failed:`, error);
+        }
       }
     } catch (error) {
       console.error('Polling failed:', error);
