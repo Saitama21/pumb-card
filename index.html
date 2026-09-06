@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#0f1114" />
+  <meta name="theme-color" content="#0d0f13" />
   <title>ПУМБ — реквізити картки</title>
 
   <meta property="og:type" content="website" />
@@ -27,111 +27,191 @@
 
   <style>
     :root{
-      --pumb:#d7193f;
-      --pumb-dark:#b91435;
-      --bg:#0f1114;
-      --surface:#191c21;
-      --text:#f6f7f8;
-      --muted:#a3a8b0;
-      --line:#2a2e35;
-      --success:#24a567;
-      --shadow:0 28px 80px rgba(0,0,0,.44);
+      --pumb:#e51b45;
+      --pumb-2:#b80d35;
+      --bg:#0d0f13;
+      --surface:rgba(27,30,36,.72);
+      --surface-strong:rgba(30,33,39,.9);
+      --text:#f7f8fa;
+      --muted:#a6abb3;
+      --muted-2:#767c85;
+      --line:rgba(255,255,255,.10);
+      --line-strong:rgba(255,255,255,.15);
+      --success:#31b979;
+      --app-height:100dvh;
     }
 
     *{box-sizing:border-box}
     html,body{margin:0;width:100%;min-height:100%;background:var(--bg)}
     html{color-scheme:dark}
+
     body{
-      min-height:100dvh;
-      min-height:var(--tg-viewport-stable-height,100dvh);
-      display:grid;
-      place-items:center;
+      min-height:var(--app-height);
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
       padding:
-        max(18px,env(safe-area-inset-top))
+        max(18px,calc(var(--tg-content-safe-area-inset-top,0px) + 18px))
         max(16px,env(safe-area-inset-right))
-        max(18px,env(safe-area-inset-bottom))
+        max(24px,calc(var(--tg-content-safe-area-inset-bottom,0px) + 18px))
         max(16px,env(safe-area-inset-left));
-      background:
-        radial-gradient(70% 55% at 88% 92%,rgba(215,25,63,.10),transparent 72%),
-        radial-gradient(55% 45% at 8% 8%,rgba(215,25,63,.08),transparent 72%),
-        var(--bg);
-      color:var(--text);
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
       overflow-x:hidden;
+      color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      background:
+        radial-gradient(72% 48% at 4% 8%,rgba(229,27,69,.18),transparent 70%),
+        radial-gradient(62% 42% at 98% 90%,rgba(184,13,53,.16),transparent 72%),
+        linear-gradient(180deg,#101217 0%,#0c0e12 55%,#090b0f 100%);
     }
 
-    .wrap{width:min(100%,620px)}
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      opacity:.38;
+      background:
+        linear-gradient(120deg,transparent 0 38%,rgba(255,255,255,.018) 44%,transparent 51%),
+        radial-gradient(circle at 50% -12%,rgba(255,255,255,.055),transparent 38%);
+    }
+
+    .wrap{
+      width:min(100%,560px);
+      padding-top:clamp(28px,5.2vh,66px);
+      position:relative;
+      z-index:1;
+      animation:app-in .52s cubic-bezier(.2,.8,.2,1) both;
+    }
+
     .brand{
       display:flex;
       align-items:center;
       gap:13px;
-      margin:0 4px 16px;
+      margin:0 8px 18px;
     }
+
     .logo{
       color:var(--pumb);
-      font-size:34px;
-      line-height:1;
+      font-size:clamp(35px,9vw,48px);
+      line-height:.95;
       font-weight:900;
-      letter-spacing:-2px;
+      letter-spacing:-2.4px;
+      text-shadow:0 8px 28px rgba(229,27,69,.18);
     }
-    .divider{width:1px;height:30px;background:var(--line)}
-    .tag{font-size:13px;line-height:1.2;color:var(--muted);font-weight:650}
+
+    .divider{
+      width:1px;
+      height:34px;
+      background:linear-gradient(180deg,transparent,var(--line-strong),transparent);
+    }
+
+    .tag{
+      font-size:14px;
+      line-height:1.15;
+      color:var(--muted);
+      font-weight:760;
+      letter-spacing:-.01em;
+    }
 
     .panel{
       position:relative;
       overflow:hidden;
-      padding:26px;
-      background:linear-gradient(180deg,rgba(31,35,41,.96),rgba(24,27,32,.96));
-      border:1px solid rgba(255,255,255,.09);
-      border-radius:28px;
-      box-shadow:var(--shadow);
       isolation:isolate;
+      padding:28px;
+      border-radius:32px;
+      border:1px solid var(--line-strong);
+      background:
+        linear-gradient(145deg,rgba(255,255,255,.095),rgba(255,255,255,.025) 34%,rgba(229,27,69,.025) 100%),
+        var(--surface);
+      -webkit-backdrop-filter:blur(30px) saturate(135%);
+      backdrop-filter:blur(30px) saturate(135%);
+      box-shadow:
+        0 30px 90px rgba(0,0,0,.46),
+        inset 0 1px 0 rgba(255,255,255,.08),
+        inset 0 -1px 0 rgba(255,255,255,.02);
     }
+
     .panel::before{
       content:"";
       position:absolute;
-      inset:0;
+      inset:-1px;
+      z-index:-2;
+      background:
+        radial-gradient(90% 48% at 0% 0%,rgba(255,255,255,.105),transparent 62%),
+        radial-gradient(46% 42% at 100% 0%,rgba(229,27,69,.23),transparent 70%);
       pointer-events:none;
-      background:linear-gradient(140deg,rgba(255,255,255,.08),transparent 34%);
-      z-index:-1;
     }
+
     .panel::after{
       content:"";
       position:absolute;
-      width:220px;height:220px;
+      width:260px;
+      height:260px;
+      right:-132px;
+      top:-136px;
       border-radius:50%;
-      right:-120px;top:-130px;
-      background:radial-gradient(circle at 35% 35%,#f34466 0,var(--pumb) 52%,var(--pumb-dark) 100%);
-      opacity:.96;
       z-index:-1;
+      background:radial-gradient(circle at 32% 32%,#ff4168 0%,var(--pumb) 48%,var(--pumb-2) 100%);
+      box-shadow:0 0 72px rgba(229,27,69,.25);
     }
+
+    .shine{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      border-radius:inherit;
+      overflow:hidden;
+    }
+
+    .shine::after{
+      content:"";
+      position:absolute;
+      width:66%;
+      height:190%;
+      top:-52%;
+      left:-72%;
+      transform:rotate(18deg);
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.055),transparent);
+      animation:shine 7s ease-in-out 1.2s infinite;
+    }
+
     .eyebrow{
-      margin:0 0 8px;
+      margin:0 0 9px;
       color:var(--muted);
       font-size:12px;
-      font-weight:800;
-      letter-spacing:.12em;
+      font-weight:850;
+      letter-spacing:.16em;
       text-transform:uppercase;
     }
+
     .holder{
-      margin:0 0 24px;
-      font-size:clamp(20px,4.8vw,28px);
-      line-height:1.2;
-      font-weight:800;
-      letter-spacing:-.02em;
+      margin:0 0 28px;
+      max-width:88%;
+      font-size:clamp(23px,5.8vw,32px);
+      line-height:1.08;
+      font-weight:850;
+      letter-spacing:-.03em;
+      text-wrap:balance;
     }
+
     .number-box{
       display:flex;
       align-items:center;
       gap:12px;
       min-width:0;
-      padding:14px 14px 14px 17px;
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(255,255,255,.025);
-      border-radius:18px;
-      backdrop-filter:blur(18px);
-      -webkit-backdrop-filter:blur(18px);
+      padding:12px 12px 12px 18px;
+      border:1px solid rgba(255,255,255,.105);
+      border-radius:20px;
+      background:
+        linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.022)),
+        rgba(8,10,14,.22);
+      -webkit-backdrop-filter:blur(24px) saturate(130%);
+      backdrop-filter:blur(24px) saturate(130%);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.055),
+        0 12px 38px rgba(0,0,0,.18);
     }
+
     .number{
       flex:1 1 auto;
       min-width:0;
@@ -139,61 +219,132 @@
       overflow:hidden;
       color:var(--text);
       font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
-      font-size:clamp(17px,5.1vw,27px);
+      font-size:clamp(17px,5.4vw,28px);
       line-height:1;
       font-weight:800;
-      letter-spacing:-.025em;
+      letter-spacing:-.035em;
       font-variant-numeric:tabular-nums;
     }
+
     .copy{
       flex:0 0 auto;
+      width:58px;
+      min-height:58px;
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      gap:8px;
-      min-height:48px;
-      padding:0 16px;
-      border:0;
-      border-radius:14px;
-      background:linear-gradient(180deg,#e01b45,var(--pumb-dark));
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:18px;
+      background:
+        linear-gradient(180deg,rgba(255,255,255,.09),transparent 28%),
+        linear-gradient(180deg,#ee244d,var(--pumb-2));
       color:#fff;
-      box-shadow:0 10px 22px rgba(215,25,63,.22);
-      font:800 15px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      box-shadow:
+        0 14px 32px rgba(229,27,69,.26),
+        inset 0 1px 0 rgba(255,255,255,.14);
       cursor:pointer;
-      transition:transform .16s ease,filter .16s ease,background .2s ease;
+      transition:transform .18s ease,filter .18s ease,background .2s ease,box-shadow .2s ease;
       touch-action:manipulation;
       -webkit-tap-highlight-color:transparent;
     }
-    .copy:active{transform:scale(.975)}
-    .copy.done{background:var(--success)}
-    .copy svg{width:19px;height:19px;stroke:currentColor;stroke-width:2;fill:none}
+
+    .copy:active{transform:scale(.955)}
+    .copy.done{
+      background:linear-gradient(180deg,#39c987,#239b66);
+      box-shadow:0 14px 32px rgba(49,185,121,.20),inset 0 1px 0 rgba(255,255,255,.14);
+    }
+    .copy svg{width:23px;height:23px;stroke:currentColor;stroke-width:2;fill:none}
+    .copy .copy-text{display:none}
+
     .status{
       min-height:22px;
-      margin:12px 2px 0;
+      margin:14px 3px 0;
       color:var(--muted);
       font-size:13px;
       line-height:1.45;
       font-weight:650;
+      transition:color .2s ease;
     }
-    .status.ok{color:var(--success)}
-    .fine{margin:14px 4px 0;color:var(--muted);font-size:11px;line-height:1.45;text-align:center}
+    .status.ok{color:#74ddb0}
+
+    .fine{
+      margin:16px 8px 0;
+      color:var(--muted-2);
+      font-size:11px;
+      line-height:1.5;
+      text-align:center;
+    }
+
+    .toast{
+      position:fixed;
+      z-index:10;
+      left:50%;
+      bottom:max(26px,calc(var(--tg-content-safe-area-inset-bottom,0px) + 22px));
+      transform:translate(-50%,18px) scale(.96);
+      display:flex;
+      align-items:center;
+      gap:9px;
+      padding:12px 15px;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:18px;
+      background:rgba(27,30,36,.78);
+      -webkit-backdrop-filter:blur(24px) saturate(140%);
+      backdrop-filter:blur(24px) saturate(140%);
+      box-shadow:0 18px 48px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.07);
+      color:#f6f7f8;
+      font-size:13px;
+      font-weight:750;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .2s ease,transform .28s cubic-bezier(.2,.8,.2,1);
+    }
+
+    .toast.show{
+      opacity:1;
+      transform:translate(-50%,0) scale(1);
+    }
+
+    .toast-dot{
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:var(--success);
+      box-shadow:0 0 18px rgba(49,185,121,.55);
+    }
+
+    @keyframes app-in{
+      from{opacity:0;transform:translateY(18px) scale(.985)}
+      to{opacity:1;transform:translateY(0) scale(1)}
+    }
+
+    @keyframes shine{
+      0%,58%{transform:translateX(0) rotate(18deg);opacity:0}
+      64%{opacity:1}
+      82%{transform:translateX(250%) rotate(18deg);opacity:0}
+      100%{transform:translateX(250%) rotate(18deg);opacity:0}
+    }
 
     @media (max-width:430px){
-      body{place-items:start center;padding-top:max(12px,env(safe-area-inset-top))}
-      .wrap{margin:auto 0}
-      .panel{padding:22px 18px;border-radius:24px}
-      .holder{margin-bottom:18px}
-      .number-box{gap:8px;padding:12px}
-      .copy{width:48px;padding:0;border-radius:13px}
-      .copy .copy-text{display:none}
-      .number{font-size:clamp(16px,5.1vw,21px)}
+      .wrap{padding-top:clamp(20px,4vh,42px)}
+      .brand{margin-bottom:16px}
+      .panel{padding:24px 20px;border-radius:28px}
+      .holder{margin-bottom:24px;max-width:92%}
+      .number-box{gap:9px;padding:11px 11px 11px 15px}
+      .copy{width:56px;min-height:56px;border-radius:17px}
+      .number{font-size:clamp(16px,5vw,22px)}
     }
-    @media (max-width:340px){
-      .panel{padding-inline:14px}
-      .number-box{padding:11px 10px}
-      .number{font-size:15.2px;letter-spacing:-.04em}
+
+    @media (max-width:360px){
+      .panel{padding:21px 16px}
+      .number-box{padding-left:12px}
+      .number{font-size:15.2px;letter-spacing:-.045em}
+      .copy{width:52px;min-height:52px}
     }
-    @media (prefers-reduced-motion:reduce){.copy{transition:none}}
+
+    @media (prefers-reduced-motion:reduce){
+      .wrap,.shine::after{animation:none}
+      .copy,.toast{transition:none}
+    }
   </style>
 </head>
 <body>
@@ -205,6 +356,8 @@
     </header>
 
     <section class="panel" aria-labelledby="card-title">
+      <div class="shine" aria-hidden="true"></div>
+
       <p class="eyebrow">Одержувач</p>
       <h1 class="holder" id="card-title">Ерошов Иван Сергеевич</h1>
 
@@ -219,51 +372,75 @@
           <span class="copy-text">Скопіювати</span>
         </button>
       </div>
+
       <div class="status" id="status" aria-live="polite">Натисни кнопку — скопіюється номер без пробілів.</div>
     </section>
 
     <div class="fine">Неофіційна сторінка для зручного копіювання реквізитів.</div>
   </main>
 
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <span class="toast-dot" aria-hidden="true"></span>
+    <span>Номер скопійовано</span>
+  </div>
+
   <script>
     (() => {
       const tg = window.Telegram?.WebApp;
+
+      function syncViewport(){
+        const height = tg?.viewportStableHeight || tg?.viewportHeight || window.visualViewport?.height || window.innerHeight;
+        if (height) document.documentElement.style.setProperty('--app-height', `${Math.round(height)}px`);
+      }
+
       if (tg) {
         try {
           tg.ready();
           tg.expand();
-          tg.setHeaderColor?.('#0f1114');
-          tg.setBackgroundColor?.('#0f1114');
-          if (typeof tg.requestFullscreen === 'function') {
-            tg.requestFullscreen();
-          }
+          tg.setHeaderColor?.('#0d0f13');
+          tg.setBackgroundColor?.('#0d0f13');
+          tg.disableVerticalSwipes?.();
+          if (typeof tg.requestFullscreen === 'function') tg.requestFullscreen();
+          tg.onEvent?.('viewportChanged',syncViewport);
         } catch (error) {
-          console.warn('Telegram Mini App init:', error);
+          console.warn('Telegram Mini App init:',error);
         }
       }
 
-      const raw = '4314140211726887';
-      const btn = document.getElementById('copy');
-      const status = document.getElementById('status');
-      const label = btn.querySelector('.copy-text');
+      syncViewport();
+      window.visualViewport?.addEventListener('resize',syncViewport);
+      window.addEventListener('resize',syncViewport);
+
+      const raw='4314140211726887';
+      const btn=document.getElementById('copy');
+      const status=document.getElementById('status');
+      const toast=document.getElementById('toast');
       let resetTimer;
+      let toastTimer;
 
       async function writeClipboard(text){
         if (navigator.clipboard && window.isSecureContext) {
           await navigator.clipboard.writeText(text);
           return;
         }
-        const ta = document.createElement('textarea');
-        ta.value = text;
+
+        const ta=document.createElement('textarea');
+        ta.value=text;
         ta.setAttribute('readonly','');
         ta.style.position='fixed';
         ta.style.opacity='0';
         ta.style.pointerEvents='none';
         document.body.appendChild(ta);
         ta.select();
-        const ok = document.execCommand('copy');
+        const ok=document.execCommand('copy');
         ta.remove();
         if (!ok) throw new Error('copy failed');
+      }
+
+      function showToast(){
+        clearTimeout(toastTimer);
+        toast.classList.add('show');
+        toastTimer=setTimeout(() => toast.classList.remove('show'),1500);
       }
 
       async function copyNumber(){
@@ -274,16 +451,18 @@
           btn.classList.add('done');
           status.classList.add('ok');
           status.textContent='Номер скопійовано ✓';
-          if (label) label.textContent='Готово';
+          showToast();
+          tg?.HapticFeedback?.notificationOccurred?.('success');
+
           resetTimer=setTimeout(() => {
             btn.classList.remove('done');
             status.classList.remove('ok');
             status.textContent='Натисни кнопку — скопіюється номер без пробілів.';
-            if (label) label.textContent='Скопіювати';
           },1800);
         } catch (error) {
           status.classList.remove('ok');
           status.textContent='Не вдалося скопіювати автоматично. Затисни номер і вибери «Копіювати».';
+          tg?.HapticFeedback?.notificationOccurred?.('error');
         }
       }
 
