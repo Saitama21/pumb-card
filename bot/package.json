@@ -3,14 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "devDependencies": {
-    "@tgcloud/cli": "^0.1.2"
+  "engines": {
+    "node": ">=20"
   },
   "scripts": {
-    "status": "tgcloud status",
-    "diff": "tgcloud diff",
-    "deploy": "tgcloud push",
-    "test:start": "tgcloud run handlers/message '{\"chat\":{\"id\":1},\"from\":{\"first_name\":\"Test\"},\"text\":\"/start\"}'",
-    "webhook": "tgcloud webhook"
+    "start": "node index.mjs"
   }
 }
