@@ -1,0 +1,83 @@
+name: Restore first chart
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/restore-first-chart.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Restore original chart implementation
+        shell: python
+        run: |
+          from pathlib import Path
+          import subprocess
+
+          p = Path('index.html')
+          cur = p.read_text(encoding='utf-8')
+          old = subprocess.check_output([
+              'git','show','5c922fa42043a3d7ed226c7868a677f2bb73d557:index.html'
+          ], text=True)
+
+          def replace_between(dst, src, start, end):
+              a1 = dst.index(start)
+              a2 = dst.index(end, a1)
+              b1 = src.index(start)
+              b2 = src.index(end, b1)
+              return dst[:a1] + src[b1:b2] + dst[a2:]
+
+          def extract_function(src, name):
+              marker = f'function {name}('
+              i = src.index(marker)
+              brace = src.index('{', i)
+              depth = 0
+              in_s = None
+              esc = False
+              j = brace
+              while j < len(src):
+                  ch = src[j]
+                  if in_s:
+                      if esc:
+                          esc = False
+                      elif ch == '\\':
+                          esc = True
+                      elif ch == in_s:
+                          in_s = None
+                  else:
+                      if ch in ('\"', "'", '`'):
+                          in_s = ch
+                      elif ch == '{':
+                          depth += 1
+                      elif ch == '}':
+                          depth -= 1
+                          if depth == 0:
+                              return src[i:j+1]
+                  j += 1
+              raise RuntimeError('function end not found')
+
+          # Restore the original SVG line/point styling but keep today's compact chart height.
+          cur = replace_between(cur, old, '.chart svg{', '.delta{')
+
+          old_chart = extract_function(old, 'chart')
+          cur_chart = extract_function(cur, 'chart')
+          cur = cur.replace(cur_chart, old_chart, 1)
+
+          p.write_text(cur, encoding='utf-8')
+
+      - name: Commit restored chart
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Restore original animated currency chart"
+          git push
