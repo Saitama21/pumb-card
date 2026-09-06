@@ -7,7 +7,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "start": "node bot/index.mjs"
+    "start": "node bot/index2.mjs"
   },
   "dependencies": {
     "sharp": "^0.34.3"
