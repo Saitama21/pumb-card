@@ -4,12 +4,7 @@ const TOKEN = process.env.BOT_TOKEN;
 const CARD_URL = 'https://saitama21.github.io/pumb-card/';
 const PREVIEW_URL = 'https://raw.githubusercontent.com/Saitama21/pumb-card/main/og-preview.png';
 const API = TOKEN ? `https://api.telegram.org/bot${TOKEN}` : null;
-
-const FALLBACK_CARD = {
-  holder: 'Ерошов Иван Сергеевич',
-  number: '4314 1402 1172 6887',
-  raw: '4314140211726887',
-};
+let cachedPhotoFileId = null;
 
 if (!TOKEN) {
   console.error('BOT_TOKEN is not set');
@@ -17,10 +12,7 @@ if (!TOKEN) {
 }
 
 function escapeHtml(value = '') {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;');
+  return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 }
 
 async function bot(method, params = {}) {
@@ -29,118 +21,87 @@ async function bot(method, params = {}) {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(params),
   });
-
   const payload = await response.json();
-  if (!payload.ok) {
-    const error = new Error(`${method}: ${payload.error_code ?? ''} ${payload.description ?? 'Telegram API error'}`);
-    error.code = payload.error_code;
-    throw error;
-  }
+  if (!payload.ok) throw new Error(`${method}: ${payload.error_code ?? ''} ${payload.description ?? 'Telegram API error'}`);
+  return payload.result;
+}
+
+async function botMultipart(method, form) {
+  const response = await fetch(`${API}/${method}`, { method: 'POST', body: form });
+  const payload = await response.json();
+  if (!payload.ok) throw new Error(`${method}: ${payload.error_code ?? ''} ${payload.description ?? 'Telegram API error'}`);
   return payload.result;
 }
 
 async function loadCard() {
-  try {
-    const response = await fetch(CARD_URL, {
-      cache: 'no-store',
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!response.ok) throw new Error(`Card page returned ${response.status}`);
-    const html = await response.text();
-
-    const numberMatch = html.match(/id=["']number["'][^>]*>([0-9 ]+)</i);
-    const holderMatch = html.match(/id=["']card-title["'][^>]*>([^<]+)</i);
-    if (!numberMatch) throw new Error('Card number not found on card page');
-
-    const number = numberMatch[1].trim();
-    return {
-      number,
-      raw: number.replace(/\D/g, ''),
-      holder: holderMatch?.[1]?.trim() || FALLBACK_CARD.holder,
-    };
-  } catch (error) {
-    console.warn('Card page unavailable, using fallback:', error.message);
-    return FALLBACK_CARD;
-  }
+  const response = await fetch(CARD_URL, { cache: 'no-store', signal: AbortSignal.timeout(5000) });
+  if (!response.ok) throw new Error(`Card page returned ${response.status}`);
+  const html = await response.text();
+  const numberMatch = html.match(/id=["']number["'][^>]*>([0-9 ]+)</i);
+  const holderMatch = html.match(/id=["']card-title["'][^>]*>([^<]+)</i);
+  if (!numberMatch || !holderMatch) throw new Error('Card data not found on card page');
+  const number = numberMatch[1].trim();
+  return { holder: holderMatch[1].trim(), number, raw: number.replace(/\D/g, '') };
 }
 
 function keyboard(raw) {
   return {
     inline_keyboard: [
-      [
-        {
-          text: '📋 Скопировать номер',
-          copy_text: { text: raw },
-        },
-      ],
-      [
-        {
-          text: '🌐 Открыть карточку',
-          url: CARD_URL,
-        },
-      ],
-    ],
-  };
-}
-
-function linkKeyboard() {
-  return {
-    inline_keyboard: [
-      [
-        {
-          text: '🌐 Открыть карточку',
-          url: CARD_URL,
-        },
-      ],
+      [{ text: '📋 Скопировать номер', copy_text: { text: raw } }],
+      [{ text: '🌐 Открыть карточку', url: CARD_URL }],
     ],
   };
 }
 
 function caption(card) {
-  return [
-    `<b>${escapeHtml(card.holder)}</b>`,
-    `<code>${escapeHtml(card.number)}</code>`,
-  ].join('\n');
+  return `<b>${escapeHtml(card.holder)}</b>\n<code>${escapeHtml(card.number)}</code>`;
+}
+
+async function downloadPreview() {
+  const response = await fetch(`${PREVIEW_URL}?v=${Date.now()}`, {
+    cache: 'no-store',
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!response.ok) throw new Error(`Preview returned ${response.status}`);
+  const bytes = await response.arrayBuffer();
+  return new Blob([bytes], { type: response.headers.get('content-type') || 'image/png' });
+}
+
+async function sendPhotoUpload(chatId, card) {
+  const form = new FormData();
+  form.append('chat_id', String(chatId));
+  form.append('caption', caption(card));
+  form.append('parse_mode', 'HTML');
+  form.append('reply_markup', JSON.stringify(keyboard(card.raw)));
+  form.append('photo', await downloadPreview(), 'pumb-card.png');
+  const sent = await botMultipart('sendPhoto', form);
+  const photos = sent.photo || [];
+  if (photos.length) cachedPhotoFileId = photos[photos.length - 1].file_id;
+  return sent;
 }
 
 async function sendCard(chatId) {
   const card = await loadCard();
-
   try {
-    const sent = await bot('sendPhoto', {
-      chat_id: chatId,
-      photo: PREVIEW_URL,
-      caption: caption(card),
-      parse_mode: 'HTML',
-      reply_markup: keyboard(card.raw),
-    });
+    const sent = cachedPhotoFileId
+      ? await bot('sendPhoto', {
+          chat_id: chatId,
+          photo: cachedPhotoFileId,
+          caption: caption(card),
+          parse_mode: 'HTML',
+          reply_markup: keyboard(card.raw),
+        })
+      : await sendPhotoUpload(chatId, card);
     console.log(`Photo card sent to ${chatId}; message=${sent.message_id}`);
-    return;
   } catch (error) {
-    console.warn('sendPhoto failed, falling back to message:', error.message);
-  }
-
-  try {
+    console.error('Photo card failed:', error.message);
     await bot('sendMessage', {
       chat_id: chatId,
-      text: `💳 <b>ПУМБ</b>\n\n${caption(card)}`,
+      text: caption(card),
       parse_mode: 'HTML',
-      disable_web_page_preview: true,
       reply_markup: keyboard(card.raw),
     });
-    console.log(`Text card sent to ${chatId}`);
-    return;
-  } catch (error) {
-    console.warn('sendMessage with copy button failed:', error.message);
   }
-
-  await bot('sendMessage', {
-    chat_id: chatId,
-    text: `💳 <b>ПУМБ</b>\n\n${caption(card)}\n\nНомер без пробелов: <code>${card.raw}</code>`,
-    parse_mode: 'HTML',
-    disable_web_page_preview: true,
-    reply_markup: linkKeyboard(),
-  });
 }
 
 async function handleMessage(message) {
@@ -148,71 +109,49 @@ async function handleMessage(message) {
   const text = message.text?.trim() ?? '';
   const command = text.startsWith('/') ? text.split(/[@\s]/)[0] : '';
   console.log(`Message from ${message.chat.id}: ${text || '[non-text]'}`);
-
-  if (command === '/start' || command === '/card') {
-    await sendCard(message.chat.id);
-  }
+  if (command === '/start' || command === '/card') await sendCard(message.chat.id);
 }
 
 async function handleInlineQuery(query) {
-  console.log(`Inline query from ${query.from?.id ?? 'unknown'}: ${query.query ?? ''}`);
   const card = await loadCard();
-
-  const photoResult = {
-    type: 'photo',
-    id: 'pumb-card-photo-v3',
-    photo_url: PREVIEW_URL,
-    thumbnail_url: PREVIEW_URL,
-    photo_width: 600,
-    photo_height: 315,
-    title: `ПУМБ • ${card.holder}`,
-    description: card.number,
-    caption: caption(card),
-    parse_mode: 'HTML',
-    reply_markup: keyboard(card.raw),
-  };
-
-  try {
-    await bot('answerInlineQuery', {
-      inline_query_id: query.id,
-      cache_time: 1,
-      is_personal: true,
-      results: [photoResult],
-    });
-    return;
-  } catch (error) {
-    console.warn('Inline photo result failed, using article:', error.message);
+  if (cachedPhotoFileId) {
+    try {
+      await bot('answerInlineQuery', {
+        inline_query_id: query.id,
+        cache_time: 1,
+        is_personal: true,
+        results: [{
+          type: 'cached_photo',
+          id: 'pumb-card-photo-v5',
+          photo_file_id: cachedPhotoFileId,
+          caption: caption(card),
+          parse_mode: 'HTML',
+          reply_markup: keyboard(card.raw),
+        }],
+      });
+      return;
+    } catch (error) {
+      console.warn('Inline cached photo failed:', error.message);
+    }
   }
-
-  const articleResult = {
-    type: 'article',
-    id: 'pumb-card-article-v3',
-    title: `ПУМБ • ${card.holder}`,
-    description: card.number,
-    input_message_content: {
-      message_text: `💳 <b>ПУМБ</b>\n\n${caption(card)}`,
-      parse_mode: 'HTML',
-      link_preview_options: { is_disabled: true },
-    },
-    reply_markup: keyboard(card.raw),
-  };
-
   await bot('answerInlineQuery', {
     inline_query_id: query.id,
     cache_time: 1,
     is_personal: true,
-    results: [articleResult],
+    results: [{
+      type: 'article',
+      id: 'pumb-card-article-v5',
+      title: `ПУМБ • ${card.holder}`,
+      description: card.number,
+      input_message_content: { message_text: caption(card), parse_mode: 'HTML' },
+      reply_markup: keyboard(card.raw),
+    }],
   });
 }
 
 async function handleUpdate(update) {
-  if (update.inline_query) {
-    await handleInlineQuery(update.inline_query);
-    return;
-  }
-  if (update.message) {
-    await handleMessage(update.message);
-  }
+  if (update.inline_query) return handleInlineQuery(update.inline_query);
+  if (update.message) return handleMessage(update.message);
 }
 
 let offset = 0;
@@ -221,22 +160,13 @@ async function pollingLoop() {
   await bot('deleteWebhook', { drop_pending_updates: false });
   const me = await bot('getMe');
   console.log(`Bot started: @${me.username}`);
-
   while (true) {
     try {
-      const updates = await bot('getUpdates', {
-        offset,
-        timeout: 50,
-        allowed_updates: ['message', 'inline_query'],
-      });
-
+      const updates = await bot('getUpdates', { offset, timeout: 50, allowed_updates: ['message', 'inline_query'] });
       for (const update of updates) {
         offset = update.update_id + 1;
-        try {
-          await handleUpdate(update);
-        } catch (error) {
-          console.error(`Update ${update.update_id} failed:`, error);
-        }
+        try { await handleUpdate(update); }
+        catch (error) { console.error(`Update ${update.update_id} failed:`, error); }
       }
     } catch (error) {
       console.error('Polling failed:', error);
