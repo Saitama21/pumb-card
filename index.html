@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#d80d2f" />
+  <meta name="color-scheme" content="light dark" />
+  <title>ПУМБ — номер картки</title>
+  <style>
+    :root{--red:#d80d2f;--red2:#b80022;--bg:#f5f6f8;--card:#fff;--text:#121417;--muted:#69707a;--line:#e2e5e9;--shadow:0 18px 55px rgba(25,31,40,.14)}
+    @media (prefers-color-scheme:dark){:root{--bg:#0f1115;--card:#171a1f;--text:#f5f7fa;--muted:#a6adb7;--line:#2a2f36;--shadow:0 18px 55px rgba(0,0,0,.35)}}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    body{display:grid;place-items:center;padding:24px;overflow-x:hidden}
+    .wrap{width:min(100%,560px)}
+    .brand{display:flex;align-items:center;gap:14px;margin:0 0 18px 4px}
+    .logo{font-size:34px;font-weight:900;letter-spacing:-2px;color:var(--red);line-height:1}.tag{font-size:14px;color:var(--muted);font-weight:600}
+    .card{position:relative;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:28px;padding:26px;box-shadow:var(--shadow)}
+    .card:before,.card:after{content:"";position:absolute;border-radius:999px;background:linear-gradient(135deg,var(--red),#ff3656);opacity:.95;pointer-events:none}
+    .card:before{width:190px;height:190px;right:-105px;top:-110px}.card:after{width:150px;height:150px;left:-90px;bottom:-105px}
+    .label{font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:800;margin-bottom:12px}
+    .number{position:relative;z-index:1;font:800 clamp(26px,7vw,42px)/1.15 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.03em;word-break:break-word;margin:0 0 22px}
+    .actions{position:relative;z-index:1;display:grid;grid-template-columns:1fr;gap:10px}
+    button{appearance:none;border:0;border-radius:16px;min-height:54px;padding:0 18px;font-size:17px;font-weight:800;cursor:pointer;transition:.18s ease;touch-action:manipulation}
+    .copy{background:linear-gradient(180deg,var(--red),var(--red2));color:white;box-shadow:0 10px 24px rgba(216,13,47,.24)}
+    .copy:active{transform:scale(.985)}.copy.done{background:#148c4b}
+    .hint{position:relative;z-index:1;margin:16px 2px 0;color:var(--muted);font-size:13px;line-height:1.5}
+    .toast{margin:14px 0 0;text-align:center;min-height:22px;font-size:14px;font-weight:700;color:var(--muted)}
+    .fine{margin-top:16px;text-align:center;font-size:12px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="brand" aria-label="Оформлення у стилі ПУМБ">
+      <div class="logo">ПУМБ</div><div class="tag">Банк для життя</div>
+    </div>
+    <section class="card">
+      <div class="label">Номер картки</div>
+      <div class="number" id="number">4314 1402 1172 6887</div>
+      <div class="actions">
+        <button class="copy" id="copy" type="button">Скопіювати номер</button>
+      </div>
+      <p class="hint">Натисни кнопку — у буфер копіюється номер без пробілів: <strong>4314140211726887</strong>.</p>
+      <div class="toast" id="toast" aria-live="polite"></div>
+    </section>
+    <div class="fine">Неофіційна сторінка для зручного копіювання номера.</div>
+  </main>
+<script>
+(() => {
+  const raw = '4314140211726887';
+  const btn = document.getElementById('copy');
+  const toast = document.getElementById('toast');
+  async function copyText(){
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(raw);
+      } else {
+        const ta=document.createElement('textarea');
+        ta.value=raw;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.opacity='0';
+        document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
+      }
+      btn.textContent='Скопійовано ✓';btn.classList.add('done');toast.textContent='Номер скопійовано в буфер обміну';
+      setTimeout(()=>{btn.textContent='Скопіювати номер';btn.classList.remove('done');toast.textContent='';},1800);
+    } catch(e){
+      toast.textContent='Не вдалося скопіювати автоматично. Затисни номер і вибери «Копіювати».';
+    }
+  }
+  btn.addEventListener('click', copyText);
+})();
+</script>
+</body>
+</html>
