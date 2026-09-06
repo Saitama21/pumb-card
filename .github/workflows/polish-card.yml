@@ -38,6 +38,11 @@ jobs:
           if old in s and 'paybadges' not in s.split('<body>',1)[1]:
               s = s.replace(old, new, 1)
 
+          # Keep chart endpoint perfectly fixed: pulse brightness/opacity only, never transform it.
+          s = s.replace('.endhalo{opacity:.14;transform-origin:center;animation:halo 2.1s ease-in-out infinite}', '.endhalo{opacity:.14;animation:halo 1.8s ease-in-out infinite}')
+          s = s.replace('.endring{fill:#fff;stroke-width:2.3;filter:url(#strong)}', '.endring{fill:#fff;stroke-width:2.3;filter:url(#strong);animation:endPulse 1.8s ease-in-out infinite}')
+          s = s.replace('@keyframes halo{50%{opacity:.3;transform:scale(1.1)}}', '@keyframes halo{0%,100%{opacity:.10}50%{opacity:.34}}@keyframes endPulse{0%,100%{opacity:1}50%{opacity:.72}}')
+
           p.write_text(s, encoding='utf-8')
       - name: Commit changes
         run: |
@@ -45,5 +50,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
           git diff --cached --quiet && exit 0
-          git commit -m "Restore white card number and add animated payment badges"
+          git commit -m "Make chart endpoints pulse in place"
           git push
