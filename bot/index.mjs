@@ -2,7 +2,7 @@ import http from 'node:http';
 
 const TOKEN = process.env.BOT_TOKEN;
 const CARD_URL = 'https://saitama21.github.io/pumb-card/';
-const PREVIEW_URL = 'https://saitama21.github.io/pumb-card/og-preview.png?v=2';
+const PREVIEW_URL = 'https://raw.githubusercontent.com/Saitama21/pumb-card/main/og-preview.png';
 const API = TOKEN ? `https://api.telegram.org/bot${TOKEN}` : null;
 
 const FALLBACK_CARD = {
@@ -98,42 +98,37 @@ function linkKeyboard() {
 
 function caption(card) {
   return [
-    '💳 <b>ПУМБ</b>',
-    '',
     `<b>${escapeHtml(card.holder)}</b>`,
     `<code>${escapeHtml(card.number)}</code>`,
-    '',
-    'Нажмите кнопку ниже, чтобы скопировать номер карты.',
   ].join('\n');
 }
 
 async function sendCard(chatId) {
   const card = await loadCard();
-  const text = caption(card);
 
   try {
-    await bot('sendPhoto', {
+    const sent = await bot('sendPhoto', {
       chat_id: chatId,
       photo: PREVIEW_URL,
-      caption: text,
+      caption: caption(card),
       parse_mode: 'HTML',
       reply_markup: keyboard(card.raw),
     });
-    console.log(`Card sent as photo to ${chatId}`);
+    console.log(`Photo card sent to ${chatId}; message=${sent.message_id}`);
     return;
   } catch (error) {
-    console.warn('sendPhoto failed, falling back to sendMessage:', error.message);
+    console.warn('sendPhoto failed, falling back to message:', error.message);
   }
 
   try {
     await bot('sendMessage', {
       chat_id: chatId,
-      text,
+      text: `💳 <b>ПУМБ</b>\n\n${caption(card)}`,
       parse_mode: 'HTML',
       disable_web_page_preview: true,
       reply_markup: keyboard(card.raw),
     });
-    console.log(`Card sent as message to ${chatId}`);
+    console.log(`Text card sent to ${chatId}`);
     return;
   } catch (error) {
     console.warn('sendMessage with copy button failed:', error.message);
@@ -141,12 +136,11 @@ async function sendCard(chatId) {
 
   await bot('sendMessage', {
     chat_id: chatId,
-    text: `${text}\n\nНомер без пробелов: <code>${card.raw}</code>`,
+    text: `💳 <b>ПУМБ</b>\n\n${caption(card)}\n\nНомер без пробелов: <code>${card.raw}</code>`,
     parse_mode: 'HTML',
     disable_web_page_preview: true,
     reply_markup: linkKeyboard(),
   });
-  console.log(`Card sent with safe fallback to ${chatId}`);
 }
 
 async function handleMessage(message) {
@@ -157,11 +151,6 @@ async function handleMessage(message) {
 
   if (command === '/start' || command === '/card') {
     await sendCard(message.chat.id);
-    return;
-  }
-
-  if (text) {
-    await sendCard(message.chat.id);
   }
 }
 
@@ -169,16 +158,17 @@ async function handleInlineQuery(query) {
   console.log(`Inline query from ${query.from?.id ?? 'unknown'}: ${query.query ?? ''}`);
   const card = await loadCard();
 
-  const result = {
-    type: 'article',
-    id: 'pumb-card-main-v2',
+  const photoResult = {
+    type: 'photo',
+    id: 'pumb-card-photo-v3',
+    photo_url: PREVIEW_URL,
+    thumbnail_url: PREVIEW_URL,
+    photo_width: 600,
+    photo_height: 315,
     title: `ПУМБ • ${card.holder}`,
     description: card.number,
-    input_message_content: {
-      message_text: caption(card),
-      parse_mode: 'HTML',
-      link_preview_options: { is_disabled: true },
-    },
+    caption: caption(card),
+    parse_mode: 'HTML',
     reply_markup: keyboard(card.raw),
   };
 
@@ -187,18 +177,32 @@ async function handleInlineQuery(query) {
       inline_query_id: query.id,
       cache_time: 1,
       is_personal: true,
-      results: [result],
+      results: [photoResult],
     });
+    return;
   } catch (error) {
-    console.warn('Inline result with copy button failed:', error.message);
-    result.reply_markup = linkKeyboard();
-    await bot('answerInlineQuery', {
-      inline_query_id: query.id,
-      cache_time: 1,
-      is_personal: true,
-      results: [result],
-    });
+    console.warn('Inline photo result failed, using article:', error.message);
   }
+
+  const articleResult = {
+    type: 'article',
+    id: 'pumb-card-article-v3',
+    title: `ПУМБ • ${card.holder}`,
+    description: card.number,
+    input_message_content: {
+      message_text: `💳 <b>ПУМБ</b>\n\n${caption(card)}`,
+      parse_mode: 'HTML',
+      link_preview_options: { is_disabled: true },
+    },
+    reply_markup: keyboard(card.raw),
+  };
+
+  await bot('answerInlineQuery', {
+    inline_query_id: query.id,
+    cache_time: 1,
+    is_personal: true,
+    results: [articleResult],
+  });
 }
 
 async function handleUpdate(update) {
