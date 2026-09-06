@@ -67,50 +67,104 @@ function caption(card) {
 }
 
 async function renderCardJpeg(card) {
-  const holder = escapeXml(card.holder);
   const number = escapeXml(card.number);
+  const latinHolder = 'Yeroshov Ivan Sergiyovich';
 
   const svg = `
   <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
     <defs>
       <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#11141d"/>
-        <stop offset="1" stop-color="#241720"/>
+        <stop offset="0" stop-color="#080b12"/>
+        <stop offset="0.52" stop-color="#12111a"/>
+        <stop offset="1" stop-color="#1b0b14"/>
       </linearGradient>
-      <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#d7193f"/>
-        <stop offset="1" stop-color="#a70f31"/>
+      <radialGradient id="redGlow" cx="0.18" cy="0.05" r="0.95">
+        <stop offset="0" stop-color="#ff174b" stop-opacity="0.88"/>
+        <stop offset="0.44" stop-color="#d20d3b" stop-opacity="0.50"/>
+        <stop offset="1" stop-color="#7d0829" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#ffffff" stop-opacity="0.18"/>
+        <stop offset="0.28" stop-color="#ffffff" stop-opacity="0.08"/>
+        <stop offset="0.72" stop-color="#ff2c58" stop-opacity="0.07"/>
+        <stop offset="1" stop-color="#ffffff" stop-opacity="0.03"/>
       </linearGradient>
-      <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-        <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000" flood-opacity="0.35"/>
+      <linearGradient id="glassStroke" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#ffffff" stop-opacity="0.34"/>
+        <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.09"/>
+        <stop offset="1" stop-color="#ff5f7f" stop-opacity="0.24"/>
+      </linearGradient>
+      <linearGradient id="redPill" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#f01b4a"/>
+        <stop offset="1" stop-color="#ae0c33"/>
+      </linearGradient>
+      <linearGradient id="numberPanel" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#ffffff" stop-opacity="0.12"/>
+        <stop offset="1" stop-color="#ffffff" stop-opacity="0.055"/>
+      </linearGradient>
+      <filter id="blur24" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="24"/>
+      </filter>
+      <filter id="blur48" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="48"/>
+      </filter>
+      <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+        <feDropShadow dx="0" dy="26" stdDeviation="28" flood-color="#000000" flood-opacity="0.44"/>
       </filter>
     </defs>
 
     <rect width="1200" height="630" fill="url(#bg)"/>
-    <circle cx="150" cy="120" r="260" fill="#d7193f" opacity="0.12"/>
-    <circle cx="1080" cy="560" r="280" fill="#d7193f" opacity="0.08"/>
 
-    <rect x="80" y="70" width="1040" height="490" rx="44" fill="url(#card)" filter="url(#shadow)"/>
-    <rect x="80" y="70" width="1040" height="490" rx="44" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="2"/>
+    <ellipse cx="170" cy="80" rx="390" ry="300" fill="url(#redGlow)" filter="url(#blur48)"/>
+    <ellipse cx="1040" cy="580" rx="360" ry="260" fill="#a70b35" opacity="0.28" filter="url(#blur48)"/>
+    <ellipse cx="790" cy="40" rx="240" ry="120" fill="#ff2b59" opacity="0.12" filter="url(#blur24)"/>
 
-    <text x="132" y="155" font-family="DejaVu Sans, Arial, sans-serif" font-size="66" font-weight="700" fill="#ffffff">ПУМБ</text>
-    <text x="134" y="205" font-family="DejaVu Sans, Arial, sans-serif" font-size="28" fill="#ffeef2">Реквізити картки</text>
+    <rect x="56" y="44" width="1088" height="542" rx="54" fill="#0f1018" fill-opacity="0.66" filter="url(#shadow)"/>
+    <rect x="56" y="44" width="1088" height="542" rx="54" fill="url(#glass)"/>
+    <rect x="57" y="45" width="1086" height="540" rx="53" fill="none" stroke="url(#glassStroke)" stroke-width="2"/>
 
-    <rect x="132" y="270" width="118" height="82" rx="14" fill="#f1d28a"/>
-    <path d="M191 270v82M132 311h118" stroke="#9b753e" stroke-width="4" opacity="0.75"/>
-    <path d="M151 292h80M151 330h80" stroke="#9b753e" stroke-width="3" opacity="0.55"/>
+    <path d="M76 250 C280 70 520 76 712 138 C892 196 998 166 1134 92 L1134 44 L56 44 L56 330 Z" fill="#ffffff" opacity="0.022"/>
+    <path d="M402 586 C610 420 830 410 1144 502 L1144 586 Z" fill="#e10f42" opacity="0.10"/>
 
-    <text x="305" y="325" font-family="DejaVu Sans Mono, DejaVu Sans, monospace" font-size="54" font-weight="700" fill="#ffffff" letter-spacing="1">${number}</text>
-    <text x="305" y="410" font-family="DejaVu Sans, Arial, sans-serif" font-size="42" font-weight="700" fill="#ffffff">${holder}</text>
+    <g transform="translate(92 84)">
+      <rect x="0" y="0" width="160" height="64" rx="22" fill="url(#redPill)"/>
+      <circle cx="32" cy="32" r="11" fill="#ffffff" opacity="0.92"/>
+      <circle cx="44" cy="32" r="11" fill="none" stroke="#ffffff" stroke-width="4" opacity="0.92"/>
+      <text x="66" y="42" font-family="DejaVu Sans, Arial, sans-serif" font-size="31" font-weight="700" fill="#ffffff">ПУМБ</text>
+    </g>
 
-    <rect x="900" y="120" width="160" height="58" rx="18" fill="#ffffff" fill-opacity="0.13"/>
-    <text x="936" y="159" font-family="DejaVu Sans, Arial, sans-serif" font-size="28" font-weight="700" fill="#ffffff">PUMB</text>
+    <g transform="translate(895 88)">
+      <rect width="206" height="54" rx="19" fill="#ffffff" fill-opacity="0.075" stroke="#ffffff" stroke-opacity="0.14"/>
+      <circle cx="28" cy="27" r="7" fill="#ff3b63"/>
+      <text x="48" y="35" font-family="DejaVu Sans, Arial, sans-serif" font-size="22" font-weight="600" fill="#f8f8fb" opacity="0.92">PAYMENT INFO</text>
+    </g>
 
-    <text x="132" y="500" font-family="DejaVu Sans, Arial, sans-serif" font-size="25" fill="#ffe8ee">Натисніть кнопку нижче, щоб скопіювати номер</text>
+    <text x="94" y="208" font-family="DejaVu Sans, Arial, sans-serif" font-size="24" font-weight="600" fill="#ffffff" opacity="0.56" letter-spacing="2">CARD DETAILS</text>
+
+    <rect x="92" y="236" width="1016" height="128" rx="34" fill="url(#numberPanel)" stroke="#ffffff" stroke-opacity="0.12"/>
+    <rect x="110" y="254" width="90" height="92" rx="28" fill="#ffffff" fill-opacity="0.075" stroke="#ffffff" stroke-opacity="0.13"/>
+    <path d="M140 284h30M140 299h30M140 314h30" stroke="#ffd37c" stroke-width="5" stroke-linecap="round" opacity="0.94"/>
+    <path d="M155 269v60" stroke="#ffd37c" stroke-width="4" stroke-linecap="round" opacity="0.62"/>
+
+    <text x="238" y="319" font-family="DejaVu Sans Mono, DejaVu Sans, monospace" font-size="55" font-weight="700" fill="#ffffff" letter-spacing="2">${number}</text>
+
+    <text x="96" y="428" font-family="DejaVu Sans, Arial, sans-serif" font-size="21" font-weight="600" fill="#ffffff" opacity="0.46" letter-spacing="2">CARD HOLDER</text>
+    <text x="94" y="482" font-family="DejaVu Sans, Arial, sans-serif" font-size="41" font-weight="700" fill="#ffffff">${latinHolder}</text>
+
+    <g transform="translate(94 518)">
+      <rect width="476" height="46" rx="18" fill="#ffffff" fill-opacity="0.065" stroke="#ffffff" stroke-opacity="0.10"/>
+      <circle cx="24" cy="23" r="6" fill="#ff3159"/>
+      <text x="44" y="30" font-family="DejaVu Sans, Arial, sans-serif" font-size="19" font-weight="500" fill="#ffffff" opacity="0.68">Tap the button below to copy the number</text>
+    </g>
+
+    <g transform="translate(914 504)">
+      <circle cx="66" cy="30" r="54" fill="#ffffff" fill-opacity="0.05" stroke="#ffffff" stroke-opacity="0.11"/>
+      <path d="M46 31h40M67 10l20 21-20 21" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="0.86"/>
+    </g>
   </svg>`;
 
   return sharp(Buffer.from(svg))
-    .jpeg({ quality: 92, chromaSubsampling: '4:4:4', progressive: false })
+    .jpeg({ quality: 94, chromaSubsampling: '4:4:4', progressive: false })
     .toBuffer();
 }
 
@@ -173,7 +227,7 @@ async function handleInlineQuery(query) {
         is_personal: true,
         results: [{
           type: 'cached_photo',
-          id: 'pumb-card-photo-v7',
+          id: 'pumb-card-photo-v8',
           photo_file_id: cachedPhotoFileId,
           caption: caption(card),
           parse_mode: 'HTML',
@@ -192,7 +246,7 @@ async function handleInlineQuery(query) {
     is_personal: true,
     results: [{
       type: 'article',
-      id: 'pumb-card-article-v7',
+      id: 'pumb-card-article-v8',
       title: `ПУМБ • ${card.holder}`,
       description: card.number,
       input_message_content: { message_text: caption(card), parse_mode: 'HTML' },
