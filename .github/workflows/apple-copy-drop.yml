@@ -1,0 +1,48 @@
+name: Apple liquid copy success
+on:
+  push:
+    paths:
+      - '.github/workflows/apple-copy-drop.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch copy button success animation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          marker='/* APPLE_COPY_DROP_V1 */'
+          if marker not in s:
+              css=r'''/* APPLE_COPY_DROP_V1 */
+.copy{position:relative;overflow:hidden;isolation:isolate}
+.copy::before{content:"";position:absolute;width:18px;height:18px;left:50%;top:50%;border-radius:999px;background:radial-gradient(circle at 35% 28%,#baffd2 0 12%,#32d874 34%,#18a94f 72%,#0b6e35 100%);box-shadow:0 0 0 0 rgba(48,209,88,.35),0 0 28px rgba(48,209,88,.38);transform:translate(-50%,-50%) scale(0);opacity:0;z-index:-1;pointer-events:none}
+.copy.copied{background:linear-gradient(145deg,rgba(69,221,116,.98),rgba(20,153,70,.9))!important;border-color:rgba(190,255,208,.48)!important;box-shadow:inset 0 1px rgba(255,255,255,.42),0 12px 34px rgba(48,209,88,.34),0 0 26px rgba(48,209,88,.24)!important;animation:appleDropButton .64s cubic-bezier(.2,.9,.2,1)}
+.copy.copied::before{animation:appleDropFill .72s cubic-bezier(.16,.84,.28,1) forwards}
+.copy.copied svg{animation:appleIconPop .55s cubic-bezier(.2,1.35,.35,1)}
+@keyframes appleDropFill{0%{transform:translate(-50%,-50%) scale(.08);border-radius:50%;opacity:.95}38%{transform:translate(-50%,-50%) scale(2.2,1.25);border-radius:44% 56% 54% 46%/58% 48% 52% 42%;opacity:1}72%{transform:translate(-50%,-50%) scale(4.8,4.2);border-radius:48% 52% 50% 50%/52% 48% 52% 48%;opacity:1}100%{transform:translate(-50%,-50%) scale(7);border-radius:50%;opacity:0}}
+@keyframes appleDropButton{0%{transform:scale(1)}28%{transform:scale(.88,.95)}58%{transform:scale(1.07,.98)}100%{transform:scale(1)}}
+@keyframes appleIconPop{0%{transform:scale(1) rotate(0)}35%{transform:scale(.72) rotate(-6deg)}70%{transform:scale(1.16) rotate(3deg)}100%{transform:scale(1) rotate(0)}}
+@media(prefers-reduced-motion:reduce){.copy.copied,.copy.copied::before,.copy.copied svg{animation:none!important}}
+'''
+              s=s.replace('</style>',css+'</style>',1)
+          old="status.textContent='Номер скопійовано ✓';status.style.color='#72ddb0';toast.classList.add('show');"
+          new="status.textContent='Номер скопійовано ✓';status.style.color='#30d158';btn.classList.remove('copied');void btn.offsetWidth;btn.classList.add('copied');setTimeout(()=>btn.classList.remove('copied'),1300);toast.classList.add('show');"
+          if old in s:
+              s=s.replace(old,new,1)
+          elif "btn.classList.add('copied')" not in s:
+              raise SystemExit('copy success handler not found')
+          p.write_text(s)
+          PY
+      - name: Commit patch
+        run: |
+          if git diff --quiet -- index.html; then exit 0; fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add index.html
+          git commit -m "Animate copy button with Apple liquid green drop"
+          git push
