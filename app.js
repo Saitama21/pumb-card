@@ -8,6 +8,8 @@
   const readoutTitle=$("#readoutTitle"), readoutText=$("#readoutText");
   const fps=$("#fps"), gpuState=$("#gpuState");
   const pulseBtn=$("#pulseBtn"), parallaxBtn=$("#parallaxBtn"), boostBtn=$("#boostBtn"), pauseBtn=$("#pauseBtn");
+  const explodeBtn=$("#explodeBtn"), assembleBtn=$("#assembleBtn"), autoBuildBtn=$("#autoBuildBtn");
+  const buildProgress=$("#buildProgress"), buildProgressText=$("#buildProgressText");
 
   const levels=[
     {title:"CSS / DOM",engine:"HTML + CSS",desc:"Типографика, сетка, градиенты, стекло и тени — базовый уровень без Canvas и GPU-сцен.",stack:["DOM","CSS","Touch"],note:"Самый лёгкий и надёжный вариант. Идеален для интерфейса и текста, но без сложной живой графики."},
@@ -33,6 +35,11 @@
     readoutTitle.textContent=L.title;
     readoutText.textContent=L.note;
     techStack.innerHTML=L.stack.map(x=>"<span>"+x+"</span>").join("");
+    if(buildProgress){
+      const pct=((current+1)/levels.length)*100;
+      buildProgress.querySelector("i").style.width=pct+"%";
+      buildProgressText.textContent="LEVEL "+String(current+1).padStart(2,"0")+" / "+L.title.toUpperCase();
+    }
     if(current>=3) startCanvas();
     if(current>=4) startPixi();
     if(current>=5) startGL();
@@ -52,7 +59,7 @@
 
   // Parallax / touch tilt
   function tiltFromPoint(x,y){
-    if(!parallax) return;
+    if(!parallax || document.body.classList.contains("exploded")) return;
     const r=card.getBoundingClientRect();
     const nx=(x-r.left)/r.width-.5, ny=(y-r.top)/r.height-.5;
     card.style.transform=`rotateX(${(-ny*5.5).toFixed(2)}deg) rotateY(${(nx*7).toFixed(2)}deg) translateZ(0)`;
@@ -66,6 +73,49 @@
   parallaxBtn.onclick=()=>{parallax=!parallax;parallaxBtn.classList.toggle("is-on",parallax);if(!parallax)card.style.transform=""};
   boostBtn.onclick=()=>{document.body.classList.toggle("boost");boostBtn.classList.toggle("is-on")};
   pauseBtn.onclick=()=>{document.body.classList.toggle("paused");pauseBtn.classList.toggle("is-on");pauseBtn.querySelector("span").textContent=document.body.classList.contains("paused")?"Продолжить":"Пауза"};
+
+  let autoTimer=0;
+  function explode(){
+    clearInterval(autoTimer);autoTimer=0;
+    document.body.classList.add("exploded");
+    document.body.classList.remove("paused");
+    pauseBtn.classList.remove("is-on");
+    pauseBtn.querySelector("span").textContent="Пауза";
+    card.style.transform="";
+    setLevel(6);
+    explodeBtn?.classList.add("is-on");
+    assembleBtn?.classList.remove("is-on");
+    requestAnimationFrame(()=>card.scrollIntoView({behavior:"smooth",block:"center"}));
+  }
+  function assemble(){
+    clearInterval(autoTimer);autoTimer=0;
+    document.body.classList.remove("exploded");
+    card.style.transform="";
+    explodeBtn?.classList.remove("is-on");
+    assembleBtn?.classList.add("is-on");
+  }
+  explodeBtn?.addEventListener("click",explode);
+  assembleBtn?.addEventListener("click",assemble);
+  autoBuildBtn?.addEventListener("click",()=>{
+    clearInterval(autoTimer);
+    document.body.classList.remove("exploded");
+    card.style.transform="";
+    let step=0;
+    setLevel(step);
+    autoBuildBtn.classList.add("is-on");
+    autoBuildBtn.querySelector("b").textContent="Идёт 1 → 7";
+    autoTimer=setInterval(()=>{
+      step++;
+      if(step>=levels.length){
+        clearInterval(autoTimer);autoTimer=0;
+        autoBuildBtn.classList.remove("is-on");
+        autoBuildBtn.querySelector("b").textContent="Авто 1 → 7";
+        setTimeout(explode,550);
+        return;
+      }
+      setLevel(step);
+    },900);
+  });
 
   // Canvas 2D particles
   function fit2d(c){
