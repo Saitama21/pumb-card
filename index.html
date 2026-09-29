@@ -3,67 +3,149 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#070a12">
+<meta name="theme-color" content="#070910">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Graphics Lab</title>
+<title>Graphics Card Lab</title>
 <link rel="manifest" href="./manifest.webmanifest">
+<link rel="preconnect" href="https://images.unsplash.com">
 <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
 <main class="app-shell">
   <header class="topbar">
-    <div><div class="eyebrow">PUMB-CARD / TEST BUILD</div><h1>Graphics Lab</h1></div>
-    <div class="perf"><span id="fps">-- FPS</span><span id="dpr">DPR --</span></div>
+    <div>
+      <div class="eyebrow">PUMB-CARD / VISUAL BENCH</div>
+      <h1>Graphics Card Lab</h1>
+    </div>
+    <div class="perf">
+      <span id="fps">-- FPS</span>
+      <span id="gpuState">GPU ready</span>
+    </div>
   </header>
 
   <section class="intro">
-    <p>Четыре подхода к живой графике в одной PWA. Трогай сцену, переключай вкладки и сравнивай плавность прямо на iPhone.</p>
-    <div class="chips"><span>Touch</span><span>GPU</span><span>60/120 Hz</span><span>Offline shell</span></div>
+    <p>Одна и та же визитка, но каждый уровень добавляет новый слой графики. Так видно не название технологии, а реальную разницу глазами и пальцем.</p>
   </section>
 
-  <section class="stage-wrap">
-    <div class="stage-glow"></div>
-
-    <article class="scene is-active" data-scene="webgl">
-      <div class="scene-head"><div><span class="scene-kicker">01 / GPU SHADER</span><h2>Liquid Glass</h2></div><span class="tech-badge">WebGL</span></div>
-      <canvas id="glCanvas" class="scene-canvas"></canvas>
-      <div class="scene-caption">Шейдер в реальном времени: блики, преломление, шум и реакция на палец — без готовой картинки.</div>
-    </article>
-
-    <article class="scene" data-scene="pixi">
-      <div class="scene-head"><div><span class="scene-kicker">02 / 2D GPU</span><h2>Particle Surface</h2></div><span class="tech-badge">PixiJS</span></div>
-      <div id="pixiHost" class="scene-canvas host"></div>
-      <div class="scene-caption">GPU-ускоренное 2D для карточек, масок, частиц и сложных интерфейсных эффектов.</div>
-    </article>
-
-    <article class="scene" data-scene="rive">
-      <div class="scene-head"><div><span class="scene-kicker">03 / VECTOR RUNTIME</span><h2>State Animation</h2></div><span class="tech-badge">Rive</span></div>
-      <canvas id="riveCanvas" class="scene-canvas"></canvas>
-      <div class="scene-caption">Интерактивная векторная анимация через runtime. После первого запуска библиотека кешируется.</div>
-    </article>
-
-    <article class="scene" data-scene="three">
-      <div class="scene-head"><div><span class="scene-kicker">04 / REAL 3D</span><h2>Metal Object</h2></div><span class="tech-badge">Three.js</span></div>
-      <div id="threeHost" class="scene-canvas host"></div>
-      <div class="scene-caption">Настоящая 3D-сцена: геометрия, свет, камера и физический материал. Веди пальцем по объекту.</div>
-    </article>
-
-    <div id="loader" class="loader" hidden>Загружаю runtime…</div>
+  <section class="ladder" aria-label="Уровни графики">
+    <button class="level is-active" data-level="0"><b>01</b><span>CSS</span></button>
+    <button class="level" data-level="1"><b>02</b><span>SVG</span></button>
+    <button class="level" data-level="2"><b>03</b><span>Photo</span></button>
+    <button class="level" data-level="3"><b>04</b><span>Canvas</span></button>
+    <button class="level" data-level="4"><b>05</b><span>Pixi</span></button>
+    <button class="level" data-level="5"><b>06</b><span>WebGL</span></button>
+    <button class="level" data-level="6"><b>07</b><span>3D</span></button>
   </section>
 
-  <section class="notes">
-    <div class="note"><span>Что тестируем</span><strong>Плавность, нагрев, отзывчивость и визуальную «дороговизну».</strong></div>
-    <div class="note"><span>Важно</span><strong>WebGL локальный. Pixi / Rive / Three кешируются после первого успешного запуска.</strong></div>
+  <section class="demo-zone">
+    <div class="card-shell" id="cardShell" data-level="0">
+      <article class="business-card" id="businessCard">
+        <img
+          class="photo-layer"
+          id="photoLayer"
+          src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1400&q=86"
+          alt="Технологичная текстура"
+          loading="eager"
+          decoding="async">
+
+        <svg class="svg-layer" viewBox="0 0 1000 620" aria-hidden="true">
+          <defs>
+            <linearGradient id="ringGrad" x1="0" x2="1">
+              <stop offset="0" stop-color="#79d7ff"/>
+              <stop offset=".52" stop-color="#7b6cff"/>
+              <stop offset="1" stop-color="#ff7bd5"/>
+            </linearGradient>
+            <filter id="softGlow">
+              <feGaussianBlur stdDeviation="7" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <path class="orbit orbit-a" d="M720 58c118 28 210 124 219 242 10 139-97 257-232 272-133 15-254-79-283-207" fill="none" stroke="url(#ringGrad)" stroke-width="3"/>
+          <path class="orbit orbit-b" d="M806 119c67 46 108 124 99 210-14 131-132 224-264 208" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1.5"/>
+          <circle cx="850" cy="176" r="8" fill="#fff" filter="url(#softGlow)"/>
+        </svg>
+
+        <canvas id="canvasFx" class="fx-layer" aria-hidden="true"></canvas>
+        <div id="pixiHost" class="fx-layer runtime-layer" aria-hidden="true"></div>
+        <canvas id="glFx" class="fx-layer" aria-hidden="true"></canvas>
+        <div id="threeHost" class="fx-layer runtime-layer three-layer" aria-hidden="true"></div>
+        <div class="glass-refraction" aria-hidden="true"></div>
+        <div class="grain" aria-hidden="true"></div>
+
+        <div class="card-content">
+          <div class="card-topline">
+            <span class="live-dot"></span>
+            <span>LIVE GRAPHICS / PWA</span>
+            <em id="engineLabel">HTML + CSS</em>
+          </div>
+
+          <div class="identity">
+            <div class="monogram">
+              <span>G</span>
+              <i></i>
+            </div>
+            <div>
+              <p class="role">INTERACTIVE VISUAL CARD</p>
+              <h2>Graphics<br>without limits.</h2>
+            </div>
+          </div>
+
+          <p class="lead" id="levelDescription">Типографика, сетка, градиенты, стекло и тени — базовый уровень без Canvas и GPU-сцен.</p>
+
+          <div class="card-bottom">
+            <div class="tech-stack" id="techStack">
+              <span>DOM</span><span>CSS</span><span>Touch</span>
+            </div>
+            <div class="signal">
+              <b id="levelNumber">01</b>
+              <span>LEVEL</span>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="controls">
+      <button class="control is-on" id="pulseBtn"><i></i><span>Пульс</span></button>
+      <button class="control is-on" id="parallaxBtn"><i></i><span>Параллакс</span></button>
+      <button class="control" id="boostBtn"><i></i><span>+ Анимация</span></button>
+      <button class="control" id="pauseBtn"><i></i><span>Пауза</span></button>
+    </div>
+
+    <div class="readout">
+      <div>
+        <span>Сейчас</span>
+        <strong id="readoutTitle">CSS / DOM</strong>
+      </div>
+      <p id="readoutText">Самый лёгкий и надёжный вариант. Идеален для интерфейса и текста, но без сложной живой графики.</p>
+    </div>
+  </section>
+
+  <section class="matrix">
+    <div class="matrix-head">
+      <span>Что добавляется по уровням</span>
+      <small>от простого → к GPU</small>
+    </div>
+    <div class="matrix-grid">
+      <div><b>CSS</b><span>стекло · свет · типографика</span></div>
+      <div><b>SVG</b><span>идеальные линии · иконки · morph-ready</span></div>
+      <div><b>Photo</b><span>WebP/AVIF · текстуры · фото</span></div>
+      <div><b>Canvas</b><span>частицы · рисование · realtime 2D</span></div>
+      <div><b>PixiJS</b><span>GPU 2D · фильтры · сотни объектов</span></div>
+      <div><b>WebGL</b><span>shader · refraction · procedural FX</span></div>
+      <div><b>Three.js</b><span>геометрия · свет · настоящий 3D</span></div>
+    </div>
   </section>
 </main>
 
-<nav class="dock" aria-label="graphics engines">
-  <button class="dock-item is-active" data-target="webgl"><i class="orb o1"></i><span>WebGL</span></button>
-  <button class="dock-item" data-target="pixi"><i class="orb o2"></i><span>Pixi</span></button>
-  <button class="dock-item" data-target="rive"><i class="orb o3"></i><span>Rive</span></button>
-  <button class="dock-item" data-target="three"><i class="orb o4"></i><span>Three</span></button>
+<nav class="dock" aria-label="Быстрый выбор графики">
+  <button class="dock-item is-active" data-jump="0"><i class="dock-orb css-orb"></i><span>Base</span></button>
+  <button class="dock-item" data-jump="2"><i class="dock-orb photo-orb"></i><span>Image</span></button>
+  <button class="dock-item" data-jump="4"><i class="dock-orb motion-orb"></i><span>Motion</span></button>
+  <button class="dock-item" data-jump="6"><i class="dock-orb top-orb"></i><span>3D</span></button>
 </nav>
+
 <script src="./app.js"></script>
 </body>
 </html>
