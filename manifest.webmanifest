@@ -1,0 +1,10 @@
+{
+  "name": "Graphics Lab",
+  "short_name": "GFX Lab",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#070a12",
+  "theme_color": "#070a12",
+  "description": "PWA graphics runtime comparison: WebGL, PixiJS, Rive and Three.js"
+}
