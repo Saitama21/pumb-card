@@ -73,6 +73,17 @@
         <div class="glass-refraction" aria-hidden="true"></div>
         <div class="grain" aria-hidden="true"></div>
 
+        <div class="layer-tags" aria-hidden="true">
+          <span class="tag-base">01 · CSS BASE</span>
+          <span class="tag-photo">02 · PHOTO / WEBP</span>
+          <span class="tag-svg">03 · SVG VECTOR</span>
+          <span class="tag-canvas">04 · CANVAS 2D</span>
+          <span class="tag-pixi">05 · PIXI GPU</span>
+          <span class="tag-webgl">06 · WEBGL SHADER</span>
+          <span class="tag-three">07 · THREE.JS 3D</span>
+          <span class="tag-ui">UI / TEXT</span>
+        </div>
+
         <div class="card-content">
           <div class="card-topline">
             <span class="live-dot"></span>
@@ -111,6 +122,25 @@
       <button class="control is-on" id="parallaxBtn"><i></i><span>Параллакс</span></button>
       <button class="control" id="boostBtn"><i></i><span>+ Анимация</span></button>
       <button class="control" id="pauseBtn"><i></i><span>Пауза</span></button>
+    </div>
+
+    <div class="explode-tools">
+      <button class="explode-btn primary" id="explodeBtn">
+        <span class="explode-icon">⌁</span>
+        <span><b>Разобрать графику</b><small>показать все слои в глубину</small></span>
+      </button>
+      <button class="explode-btn" id="assembleBtn">
+        <span class="explode-icon">◎</span>
+        <span><b>Собрать</b><small>вернуть готовую визитку</small></span>
+      </button>
+      <button class="explode-btn" id="autoBuildBtn">
+        <span class="explode-icon">▶</span>
+        <span><b>Авто 1 → 7</b><small>эволюция графики по шагам</small></span>
+      </button>
+    </div>
+
+    <div class="build-progress" id="buildProgress" aria-hidden="true">
+      <i></i><span id="buildProgressText">LEVEL 01 / CSS</span>
     </div>
 
     <div class="readout">
