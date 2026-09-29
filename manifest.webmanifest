@@ -1,10 +1,10 @@
 {
-  "name": "Graphics Lab",
-  "short_name": "GFX Lab",
-  "start_url": "./",
-  "scope": "./",
-  "display": "standalone",
-  "background_color": "#070a12",
-  "theme_color": "#070a12",
-  "description": "PWA graphics runtime comparison: WebGL, PixiJS, Rive and Three.js"
+  "name":"Button Motion Lab",
+  "short_name":"Button Lab",
+  "start_url":"./",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#080a12",
+  "theme_color":"#080a12",
+  "description":"Animated button gallery from basic CSS to Canvas, WebGL and raster cards"
 }
