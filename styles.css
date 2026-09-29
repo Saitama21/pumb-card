@@ -262,3 +262,138 @@ body.boost .glass-refraction{animation:floatBlob 4s ease-in-out infinite}
 @media(prefers-reduced-motion:reduce){
   *,*:before,*:after{animation:none!important;transition:none!important}
 }
+
+/* --- Exploded graphics showcase --- */
+.layer-tags{
+  position:absolute;inset:0;z-index:40;pointer-events:none;opacity:0;
+  transform-style:preserve-3d;transition:opacity .32s ease;
+}
+.layer-tags span{
+  position:absolute;right:14px;top:14px;padding:6px 8px;border-radius:999px;
+  background:rgba(8,12,20,.88);border:1px solid rgba(181,219,255,.18);
+  color:#dcecff;font-size:8px;font-weight:800;letter-spacing:.09em;
+  box-shadow:0 8px 24px rgba(0,0,0,.28);backdrop-filter:blur(12px);
+  white-space:nowrap;
+}
+.layer-tags .tag-base{transform:translate3d(0,0,0)}
+.layer-tags .tag-photo{transform:translate3d(0,0,38px)}
+.layer-tags .tag-svg{transform:translate3d(0,0,72px)}
+.layer-tags .tag-canvas{transform:translate3d(0,0,106px)}
+.layer-tags .tag-pixi{transform:translate3d(0,0,140px)}
+.layer-tags .tag-webgl{transform:translate3d(0,0,174px)}
+.layer-tags .tag-three{transform:translate3d(0,0,208px)}
+.layer-tags .tag-ui{transform:translate3d(0,0,244px)}
+
+.explode-tools{
+  display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px
+}
+.explode-btn{
+  min-height:58px;border-radius:18px;border:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.025));
+  display:flex;align-items:center;gap:10px;padding:10px 12px;text-align:left;
+  transition:.2s ease;-webkit-tap-highlight-color:transparent
+}
+.explode-btn.primary{
+  background:linear-gradient(180deg,rgba(106,171,255,.14),rgba(119,87,255,.08));
+  border-color:rgba(144,205,255,.2)
+}
+.explode-btn:active{transform:scale(.985)}
+.explode-icon{
+  flex:0 0 34px;height:34px;border-radius:12px;display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.055);
+  color:#bfeaff;font-size:17px;font-weight:800
+}
+.explode-btn b{display:block;font-size:11px}
+.explode-btn small{display:block;margin-top:2px;font-size:9px;color:#7f8da5;font-weight:600}
+
+.build-progress{
+  display:flex;align-items:center;gap:9px;margin-top:9px;height:28px;padding:0 10px;
+  border-radius:999px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03);
+  overflow:hidden;position:relative
+}
+.build-progress i{
+  position:absolute;left:0;top:0;bottom:0;width:14%;
+  background:linear-gradient(90deg,rgba(90,170,255,.18),rgba(153,101,255,.16));
+  transition:width .5s cubic-bezier(.2,.8,.2,1)
+}
+.build-progress span{position:relative;z-index:1;font-size:8px;font-weight:800;letter-spacing:.12em;color:#9eb0c9}
+
+/* Layer planes become physically separated in depth. */
+.photo-layer,.svg-layer,#canvasFx,#pixiHost,#glFx,#threeHost,.card-content,.glass-refraction{
+  transition:transform .72s cubic-bezier(.16,1,.3,1),opacity .35s ease,filter .35s ease,box-shadow .35s ease
+}
+body.exploded .card-shell{padding-top:56px;padding-bottom:110px}
+body.exploded .business-card{
+  overflow:visible;
+  transform:rotateX(58deg) rotateZ(-16deg) scale(.78)!important;
+  transform-style:preserve-3d;
+  box-shadow:0 55px 120px rgba(0,0,0,.46);
+  border-color:rgba(167,211,255,.22)
+}
+body.exploded .layer-tags{opacity:1}
+body.exploded .photo-layer{
+  opacity:.74!important;transform:translate3d(0,0,38px) scale(.985)!important;
+  border-radius:30px;box-shadow:0 16px 28px rgba(0,0,0,.26)
+}
+body.exploded .svg-layer{
+  opacity:1!important;transform:translate3d(0,0,72px) scale(.972)!important;
+  border-radius:30px;background:rgba(64,113,189,.025);
+  box-shadow:inset 0 0 0 1px rgba(125,196,255,.12),0 14px 26px rgba(0,0,0,.18)
+}
+body.exploded #canvasFx{
+  opacity:.82!important;transform:translate3d(0,0,106px) scale(.96)!important;
+  border-radius:30px;background:rgba(81,131,255,.025);
+  box-shadow:inset 0 0 0 1px rgba(124,199,255,.1),0 12px 24px rgba(0,0,0,.16)
+}
+body.exploded #pixiHost{
+  opacity:.9!important;transform:translate3d(0,0,140px) scale(.948)!important;
+  border-radius:30px;background:rgba(153,92,255,.025);
+  box-shadow:inset 0 0 0 1px rgba(186,131,255,.1),0 12px 24px rgba(0,0,0,.15)
+}
+body.exploded #glFx{
+  opacity:.88!important;transform:translate3d(0,0,174px) scale(.936)!important;
+  border-radius:30px;background:rgba(83,160,255,.025);
+  box-shadow:inset 0 0 0 1px rgba(122,204,255,.11),0 12px 24px rgba(0,0,0,.14)
+}
+body.exploded #threeHost{
+  opacity:1!important;transform:translate3d(0,0,208px) scale(.925)!important;
+  border-radius:30px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.09),0 12px 24px rgba(0,0,0,.12)
+}
+body.exploded .glass-refraction{
+  transform:translate3d(-10px,8px,224px) rotate(32deg) scale(.92)!important;opacity:.68
+}
+body.exploded .card-content{
+  transform:translate3d(0,0,244px) scale(.91)!important;
+  filter:drop-shadow(0 12px 18px rgba(0,0,0,.28))
+}
+body.exploded .business-card:after{opacity:.28}
+body.exploded .business-card:before{opacity:.28}
+body.exploded .tag-base{top:90%;right:75%}
+body.exploded .tag-photo{top:77%;right:70%}
+body.exploded .tag-svg{top:65%;right:64%}
+body.exploded .tag-canvas{top:53%;right:58%}
+body.exploded .tag-pixi{top:41%;right:50%}
+body.exploded .tag-webgl{top:29%;right:42%}
+body.exploded .tag-three{top:17%;right:31%}
+body.exploded .tag-ui{top:6%;right:17%}
+
+body.no-pulse .live-dot{animation:none;opacity:.45;box-shadow:none}
+
+@media(min-width:700px){
+  .explode-tools{grid-template-columns:1.2fr 1fr 1fr}
+  body.exploded .card-shell{padding-top:80px;padding-bottom:140px}
+  body.exploded .business-card{transform:rotateX(60deg) rotateZ(-14deg) scale(.82)!important}
+}
+@media(max-width:430px){
+  body.exploded .card-shell{padding-top:48px;padding-bottom:125px}
+  body.exploded .business-card{transform:rotateX(61deg) rotateZ(-16deg) scale(.72)!important}
+  .layer-tags span{font-size:6.6px;padding:5px 6px}
+  body.exploded .tag-base{right:72%}
+  body.exploded .tag-photo{right:66%}
+  body.exploded .tag-svg{right:59%}
+  body.exploded .tag-canvas{right:52%}
+  body.exploded .tag-pixi{right:44%}
+  body.exploded .tag-webgl{right:34%}
+  body.exploded .tag-three{right:23%}
+  body.exploded .tag-ui{right:8%}
+}
