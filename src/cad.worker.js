@@ -1,6 +1,6 @@
 // Exact B-Rep STEP export is intentionally separated from the lightweight WebGL preview.
-import opencascade from 'replicad-opencascadejs/src/replicad_single.js';
-import occtWasm from 'replicad-opencascadejs/src/replicad_single.wasm?url';
+import opencascade from 'replicad-opencascadejs';
+import occtWasm from 'replicad-opencascadejs/wasm?url';
 import {draw,setOC} from 'replicad';
 let initialisation;
 async function ready(){
