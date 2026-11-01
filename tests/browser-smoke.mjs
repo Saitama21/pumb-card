@@ -48,7 +48,7 @@ async function checkSize(w,h){
  await page.waitForSelector('#feature-dialog[open]');
  await page.click('#submit-feature');
  await page.waitForSelector('#id-sections .feature-row');
- const boreCount=await page.$('#id-sections .feature-row');
+ const boreCount=await page.$$('#id-sections .feature-row');
  if(boreCount.length!==1)throw Error('Dimension-based inner turning operation missing at '+w+': count='+boreCount.length+' status='+JSON.stringify(await page.evaluate(()=>({error:document.querySelector('#feature-error').textContent,dialog:document.querySelector('#feature-dialog').open,sections:document.querySelector('#id-sections').textContent,form:[...document.querySelectorAll('#feature-fields input')].map(x=>({name:x.name,value:x.value}))})))+' faults='+faults.join(' | '));
  await page.click('#id-sections .feature-row');
  await page.waitForSelector('#feature-dialog[open]');
