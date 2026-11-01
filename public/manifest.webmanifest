@@ -1,0 +1,18 @@
+{
+  "name": "CNC Toolbox Pro — 3D-конструктор",
+  "short_name": "CNC Toolbox",
+  "description": "Офлайн параметрический конструктор токарных деталей, точный STEP для eDrawings",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#07111c",
+  "theme_color": "#07111c",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
