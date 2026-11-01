@@ -18,6 +18,9 @@ async function checkSize(w,h){
  const faults=[];
  page.on('pageerror',error=>faults.push(String(error)));
  await page.goto(host,{waitUntil:'networkidle0',timeout:45000});
+ // Each viewport gets its own geometry. Prevent previous viewport's saved operations from creating overlaps.
+ await page.evaluate(()=>localStorage.removeItem('cnc-toolbox-pro-current-v1'));
+ await page.reload({waitUntil:'networkidle0',timeout:45000});
  await page.waitForSelector('#new-project',{timeout:10000});
  const result=await page.evaluate(()=>{
   const dock=document.querySelector('.dock').getBoundingClientRect();
