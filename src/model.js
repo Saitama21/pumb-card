@@ -36,7 +36,7 @@ export function validateModel(m){
  const points=[...bounds,...bounds.slice(0,-1).map((v,i)=>(v+bounds[i+1])/2)];
  for(const zi of points){
   const outer=outsideAt(m,zi),inside=insideAt(m,zi);
-  if(inner>=outer-1e-7)throw Error('Канавки пересекаются или стенка стала нулевой около Z='+zi.toFixed(2));
+  if(inside>=outer-1e-7)throw Error('Канавки пересекаются или стенка стала нулевой около Z='+zi.toFixed(2));
  }
  return m;
 }
