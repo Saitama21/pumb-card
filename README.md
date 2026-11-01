@@ -2,9 +2,16 @@
 
 **Mobile-first offline-first PWA for SINUMERIK 828D operators.** The repository has been repurposed from Button Motion Lab for this dedicated application.
 
-## Available in v0.1
+## Available in v0.2 · Full dimensional turning
+- **Complete axial inside and outside profile** built exclusively from user-entered numbers. Outer stepped cylinders and tapers; base through-hole; multiple ID boring sections with per-segment Z start, axial depth and diameter; conical inner transitions.
+- **Blind holes from either face** with a precise flat bottom, and multi-stage stepped through holes. No invented drawing dimensions.
+- **Geometry guards:** reject enclosed internal cavities, overlapping boring segments, missing access to a face, and cases where inner/outer cutting features collapse the wall.
+- **Migration:** old v0.1 JSON projects load unchanged; new `innerSections` array defaults to empty.
+- **STEP regression:** browser-driven edit of an internal dimension, creation through Open CASCADE and validation that the shared file contains an ISO-10303-21 STEP document.
+
+## Previously available in v0.1
 - Edit a *full axial turning profile* through ordered outside-diameter cylinders/steps and conical sections (X diameters / lengths).
-- Add through axial bore, external ring grooves and internal ring grooves, each with explicit Z position, width and diameter.
+- Add through axial bore, dimensional internal sections, external ring grooves and internal ring grooves, each with explicit Z position, width and diameter.
 - Exact parametric validation of lengths, positive diameters, groove bounds and wall intersection; machine-readable JSON model source.
 - Interactive WebGL 3D orbit viewer (Three.js) plus dimensional axial section; previews and CAD export derive from the same parameterized profile.
 - **Real boundary-representation STEP**, built by replicad / Open CASCADE in a Web Worker via profile revolution and shape.blobSTEP(). Never export a mere tessellated mesh as STEP.
