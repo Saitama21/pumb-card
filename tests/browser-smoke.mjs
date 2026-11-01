@@ -44,6 +44,18 @@ async function checkSize(w,h){
  await delay(120);
  const nextStep=await page.evaluate(()=>({hidden:document.querySelector('#editor-features').hidden,toast:document.querySelector('#toast').textContent,bore:document.querySelector('#part-bore').value,errors:document.querySelector('#feature-error').textContent}));
  if(nextStep.hidden)throw Error('Stock-to-features navigation failed: '+JSON.stringify(nextStep)+' | '+faults.join(' | '));
+ await page.click('#add-id-section');
+ await page.waitForSelector('#feature-dialog[open]');
+ await page.click('#submit-feature');
+ await page.waitForSelector('#id-sections .feature-row');
+ const boreCount=await page.$('#id-sections .feature-row');
+ if(boreCount.length!==1)throw Error('Dimension-based inner turning operation missing at '+w);
+ await page.click('#id-sections .feature-row');
+ await page.waitForSelector('#feature-dialog[open]');
+ await page.$eval('[name="d"]',el=>el.value='25,2');
+ await page.click('#submit-feature');
+ const innerText=await page.$eval('#id-sections',el=>el.textContent);
+ if(!innerText.includes('25,20'))throw Error('Inner bore diameter edit not reflected at '+w);
  await page.click('#add-od-groove');
  await page.waitForSelector('#feature-dialog[open]');
  await page.click('#submit-feature');
@@ -66,7 +78,15 @@ async function checkSize(w,h){
   await page.waitForFunction(()=>!document.querySelector('#share-step').disabled||document.querySelector('#export-message').textContent.startsWith('STEP не создан'),{timeout:110000});
   const status=await page.$eval('#export-message',el=>el.textContent);
   if(!status.includes('STEP построен Open CASCADE'))throw Error('Real CAD STEP export failed: '+status);
-  console.log('Verified exact Open CASCADE STEP export in Chromium');
+  await page.evaluate(()=>{
+   Object.defineProperty(navigator,'canShare',{configurable:true,value:()=>true});
+   Object.defineProperty(navigator,'share',{configurable:true,value:async ({files})=>{window.__stepContent=await files[0].text()}});
+  });
+  await page.click('#share-step');
+  await page.waitForFunction(()=>typeof window.__stepContent==='string',{timeout:10000});
+  const validStep=await page.evaluate(()=>window.__stepContent.includes('ISO-10303-21')&&window.__stepContent.includes('DATA;'));
+  if(!validStep)throw Error('Exported shared file is not a real STEP exchange document');
+  console.log('Verified actual Open CASCADE ISO-10303-21 STEP bytes and share workflow');
  }
  await page.close();
  console.log('PASS responsive CAD',w,h);
