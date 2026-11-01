@@ -33,6 +33,13 @@ async function checkSize(w,h){
  await page.waitForSelector('#editor-stock:not([hidden])');
  const count=await page.$$('#steps-list .feature-row');
  if(count.length!==4)throw Error('Sample has wrong operation tree at '+w);
+ await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
+ await delay(100);
+ const target=await page.evaluate(()=>{
+  const rect=document.querySelector('#stock-next').getBoundingClientRect();
+  return {bottom:rect.bottom,dockTop:document.querySelector('.dock').getBoundingClientRect().top};
+ });
+ if(target.bottom>target.dockTop)throw Error('Primary action obscured by dock: '+JSON.stringify(target));
  await page.click('#stock-next');
  await delay(120);
  const nextStep=await page.evaluate(()=>({hidden:document.querySelector('#editor-features').hidden,toast:document.querySelector('#toast').textContent,bore:document.querySelector('#part-bore').value,errors:document.querySelector('#feature-error').textContent}));
