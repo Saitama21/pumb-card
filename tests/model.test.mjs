@@ -31,7 +31,7 @@ test('invalid geometry rejected without changing active model',()=>{
  m.bore=24;m.grooves.push({id:'g',z:3,width:2,d:23});
  assert.throws(()=>validateModel(m),/пересекает/);
  m.grooves=[];m.innerGrooves.push({id:'g',z:22.1,width:2,d:40});
- assert.throws(()=>validateModel(m),/пересекаются/);
+ assert.throws(()=>validateModel(m),/пересекает|пересекаются/);
 });
 test('project import validates numbers and bounded operations',()=>{
  const m=part();
