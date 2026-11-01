@@ -41,26 +41,32 @@ export function validateModel(m){
  return m;
 }
 const EPS=1e-7;
-function rawOutsideAt(m,z){
+function rawOutsideAt(m,z,side=0){
  let acc=0;
  for(const s of m.steps){
   const next=acc+s.length;
-  if(z<=next+EPS){
+  if(z<next-EPS||(Math.abs(z-next)<=EPS&&side<=0)){
    const t=Math.max(0,Math.min(1,(z-acc)/s.length));
    return s.type==='taper'?s.d+(s.dEnd-s.d)*t:s.d;
   }
   acc=next;
  }
- return m.steps.at(-1).type==='taper'?m.steps.at(-1).dEnd:m.steps.at(-1).d;
+ const last=m.steps.at(-1);
+ return last.type==='taper'?last.dEnd:last.d;
 }
-export function outsideAt(m,z){
- let d=rawOutsideAt(m,z);
- for(const g of m.grooves)if(z>g.z+EPS&&z<g.z+g.width-EPS)d=Math.min(d,g.d);
+function insideGroove(g,z,side){
+ return side===-1?(z>g.z+EPS&&z<=g.z+g.width+EPS)
+  :side===1?(z>=g.z-EPS&&z<g.z+g.width-EPS)
+  :(z>g.z+EPS&&z<g.z+g.width-EPS);
+}
+export function outsideAt(m,z,side=0){
+ let d=rawOutsideAt(m,z,side);
+ for(const g of m.grooves)if(insideGroove(g,z,side))d=Math.min(d,g.d);
  return d/2;
 }
-export function insideAt(m,z){
+export function insideAt(m,z,side=0){
  let d=m.bore;
- for(const g of m.innerGrooves)if(z>g.z+EPS&&z<g.z+g.width-EPS)d=Math.max(d,g.d);
+ for(const g of m.innerGrooves)if(insideGroove(g,z,side))d=Math.max(d,g.d);
  return d/2;
 }
 function buildBoundaries(m){
@@ -73,16 +79,16 @@ const append=(a,p)=>{if(!a.length||Math.abs(a.at(-1)[0]-p[0])>EPS||Math.abs(a.at
 export function modelProfile(model){
  validateModel(model);
  const bounds=buildBoundaries(model),L=bounds.at(-1),outer=[],inner=[];
- const nudge=(v,sgn)=>Math.max(0,Math.min(L,v+sgn*1e-5));
+ // Sample the exact boundary from each side; never shift a dimensional vertex.
  for(let i=0;i<bounds.length;i++){
   const z=bounds[i];
   if(i>0){
-   append(outer,[round6(outsideAt(model,nudge(z,-1))),z]);
-   append(inner,[round6(insideAt(model,nudge(z,-1))),z]);
+   append(outer,[round6(outsideAt(model,z,-1)),z]);
+   append(inner,[round6(insideAt(model,z,-1)),z]);
   }
   if(i<bounds.length-1){
-   append(outer,[round6(outsideAt(model,nudge(z,1))),z]);
-   append(inner,[round6(insideAt(model,nudge(z,1))),z]);
+   append(outer,[round6(outsideAt(model,z,1)),z]);
+   append(inner,[round6(insideAt(model,z,1)),z]);
   }
  }
  const full=[...outer];
@@ -99,7 +105,7 @@ export function modelProfile(model){
 export function sanitizeModel(raw){
  if(!raw||typeof raw!=='object')throw Error('Некорректный проект');
  const model={version:MODEL_VERSION,name:String(raw.name??'Деталь').slice(0,70),bore:Number(raw.bore),
-  steps:Array.isArray(raw.steps)?raw.steps.map(s=>({id:String(s.id??newId()).slice(0,90),type:s.type,d:Number(s.d),dEnd:Number(s.dEnd??s.d),length:Number(s.length)})):[],
+  steps:Array.isArray(raw.steps)?raw.steps.map(s=>({id:String(s.id??newId()).slice(0,90),type:s.type,d:Number(s.d),...(s.type==='taper'?{dEnd:Number(s.dEnd)}:{}),length:Number(s.length)})):[],
   grooves:Array.isArray(raw.grooves)?raw.grooves.map(g=>({id:String(g.id??newId()).slice(0,90),z:Number(g.z),width:Number(g.width),d:Number(g.d)})):[],
   innerGrooves:Array.isArray(raw.innerGrooves)?raw.innerGrooves.map(g=>({id:String(g.id??newId()).slice(0,90),z:Number(g.z),width:Number(g.width),d:Number(g.d)})):[]
  };
