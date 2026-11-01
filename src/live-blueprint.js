@@ -43,7 +43,7 @@ export function selectAt(model,physicalZ,preferInner=false){
    if(z>=f.z0-1e-7&&z<=f.z1+1e-7)hits.push({kind,index:i});
   }
  }
- const priority=preferInner?['innerSections','innerGrooves','grooves']:['grooves','innerSections','innerGrooves'];
+ const priority=preferInner?['innerSections','innerGrooves','grooves']:['grooves'];
  for(const kind of priority){const chosen=hits.find(h=>h.kind===kind);if(chosen)return chosen}
  let start=0;
  for(let i=0;i<model.steps.length;i++){
