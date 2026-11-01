@@ -55,6 +55,10 @@ function render(){
   if(!model[key].length){const p=document.createElement('p');p.className='form-note';p.textContent='Нет операций — добавь при необходимости';el.append(p)}
   model[key].forEach((g,i)=>el.append(buttonFeature('Канавка '+kind,'Z '+fmt(g.z)+' · b '+fmt(g.width)+' · ⌀'+fmt(g.d)+' мм',i,key)));
  };
+ const sections=$('id-sections');sections.replaceChildren();
+ if(!model.innerSections.length){const p=document.createElement('p');p.className='form-note';p.textContent='Нет дополнительных расточек. Сквозное отверстие задаётся на первом шаге.';sections.append(p)}
+ model.innerSections.forEach((seg,i)=>sections.append(buttonFeature(seg.type==='taper'?'Внутренний конус':'Внутренняя ступень',
+   'Z '+fmt(seg.z)+' · L '+fmt(seg.length)+' · ⌀'+fmt(seg.d)+(seg.type==='taper'?' → ⌀'+fmt(seg.dEnd):'')+' мм',i,'innerSections')));
  renderGrooves('grooves','od-grooves','OD');renderGrooves('innerGrooves','id-grooves','ID');
  const s=$('summary-strip');s.replaceChildren();
  for(const t of ['⌀'+fmt(profile.maxD)+' макс.','L '+fmt(profile.length)+' мм','Отверстие ⌀'+fmt(model.bore)]){
@@ -66,7 +70,8 @@ function renderTree(){
  const list=$('tree-list');list.replaceChildren();
  const items=[['▣','Заготовка','⌀'+fmt(profile.maxD)+' × '+fmt(profile.length)],
   ...model.steps.map((s,i)=>['▤',(i+1)+'. '+(s.type==='taper'?'Конус':'Ступень'),'⌀'+fmt(s.d)+' · '+fmt(s.length)+' мм']),
-  ...(model.bore>0?[['◉','Сквозное отверстие','⌀'+fmt(model.bore)]]:[]),
+  ...(model.bore>0?[['◉','Базовое сквозное отверстие','⌀'+fmt(model.bore)]]:[]),
+  ...model.innerSections.map((g,i)=>['◎',(i+1)+'. '+(g.type==='taper'?'Внутренний конус':'Расточка'),'Z '+fmt(g.z)+' · ⌀'+fmt(g.d)+' · L '+fmt(g.length)]),
   ...model.grooves.map((g,i)=>['⌑','Канавка OD '+(i+1),'⌀'+fmt(g.d)+' · b '+fmt(g.width)]),
   ...model.innerGrooves.map((g,i)=>['⌑','Канавка ID '+(i+1),'⌀'+fmt(g.d)+' · b '+fmt(g.width)])];
  for(const [icon,title,dimensions] of items){
@@ -79,7 +84,9 @@ const defs={
  step:[['d','Наружный диаметр Ø, мм'],['length','Длина участка, мм']],
  taper:[['d','Диаметр в начале Ø, мм'],['dEnd','Диаметр в конце Ø, мм'],['length','Длина конуса, мм']],
  grooves:[['z','Положение от левого торца Z, мм'],['width','Ширина канавки, мм'],['d','Диаметр по дну Ø, мм']],
- innerGrooves:[['z','Положение от левого торца Z, мм'],['width','Ширина канавки, мм'],['d','Диаметр канавки Ø, мм']]
+ innerGrooves:[['z','Положение от левого торца Z, мм'],['width','Ширина канавки, мм'],['d','Диаметр канавки Ø, мм']],
+ innerSections:[['z','Начало от левого торца Z, мм'],['length','Глубина / длина участка, мм'],['d','Диаметр расточки Ø, мм']],
+ innerTaper:[['z','Начало от левого торца Z, мм'],['length','Глубина / длина участка, мм'],['d','Диаметр на входе Ø, мм'],['dEnd','Диаметр на выходе Ø, мм']]
 };
 function field(name,label,value){
  const wrapper=document.createElement('label');wrapper.className='field';
@@ -92,6 +99,13 @@ function openEditor(kind,index=-1){
  let entry;const L=totalLength(model);
  if(kind==='step')entry=index<0?{id:newId(),type:'cylinder',d:model.steps.at(-1)?.d||38,length:8}:model.steps[index];
  else if(kind==='taper')entry={id:newId(),type:'taper',d:model.steps.at(-1)?.d||38,dEnd:model.steps.at(-1)?.d||38,length:8};
+ else if(kind==='innerSections'||kind==='innerTaper'){
+  const z=model.bore>0?Math.max(0,Math.round(L*.2*1000)/1000):0;
+  const outer=outsideAt(model,z)*2;
+  const d=Number((model.bore>0?Math.min(outer-1,model.bore+1):Math.min(24,outer*.6)).toFixed(3));
+  entry={id:newId(),type:kind==='innerTaper'?'taper':'cylinder',z,length:Number(Math.min(10,L-z).toFixed(3)),d};
+  if(kind==='innerTaper')entry.dEnd=Number(Math.min(outer-0.8,d+.5).toFixed(3));
+ }
  else{
   const base=model.bore;
   if(kind==='innerGrooves'&&!base){toast('Сначала укажи внутреннее сквозное отверстие');return}
@@ -99,15 +113,16 @@ function openEditor(kind,index=-1){
   entry=index<0?{id:newId(),z,width:Math.min(2,L/4),d:kind==='innerGrooves'?base+1:Math.max(base+1,outsideAt(model,z)*2-2)}:model[kind][index];
  }
  if(kind==='step'&&entry.type==='taper')kind='taper-existing';
- const fields=kind==='taper-existing'?defs.taper:defs[kind];
+ if(kind==='innerSections'&&index>=0&&entry.type==='taper')kind='innerTaper-existing';
+ const fields=kind==='taper-existing'?defs.taper:kind==='innerTaper-existing'?defs.innerTaper:defs[kind];
  editor={kind,index,entry};
- $('feature-title').textContent=kind==='step'?'Ступень':kind.startsWith('taper')?'Конус':kind==='grooves'?'Канавка OD':'Канавка ID';
+ $('feature-title').textContent=kind==='step'?'Ступень':kind.startsWith('taper')?'Конус':kind.startsWith('inner')?(kind.includes('Taper')?'Внутренний конус':'Внутренняя ступень'):kind==='grooves'?'Канавка OD':'Канавка ID';
  $('feature-fields').replaceChildren(...fields.map(([name,label])=>field(name,label,entry[name])));
  const del=$('remove-feature');if(del)del.remove();
  if(index>=0){
   const remove=document.createElement('button');remove.type='button';remove.id='remove-feature';remove.className='button ghost';remove.textContent='Удалить операцию';
   remove.addEventListener('click',()=>{
-   const next=clone(model),key=editor.kind==='step'||editor.kind==='taper-existing'?'steps':editor.kind;
+   const next=clone(model),key=editor.kind==='step'||editor.kind==='taper-existing'?'steps':editor.kind.startsWith('innerTaper')?'innerSections':editor.kind;
    if(key==='steps'&&next.steps.length===1){$('feature-error').textContent='Нельзя удалить последнюю ступень';return}
    next[key].splice(editor.index,1);
    try{applyModel(next);$('feature-dialog').close()}catch(error){$('feature-error').textContent=error.message}
@@ -117,7 +132,7 @@ function openEditor(kind,index=-1){
 }
 function saveEditor(event){
  event.preventDefault();const {kind,index,entry}=editor;const next=clone(model),updated={...entry};
- const fields=kind==='taper-existing'?defs.taper:defs[kind];
+ const fields=kind==='taper-existing'?defs.taper:kind==='innerTaper-existing'?defs.innerTaper:defs[kind];
  for(const [name] of fields){
   const value=num($('feature-form').elements.namedItem(name).value);
   if(!Number.isFinite(value)){$('feature-error').textContent='Введи корректное число';return}
@@ -127,6 +142,9 @@ function saveEditor(event){
   if(kind==='step'||kind==='taper'||kind==='taper-existing'){
    updated.type=kind.startsWith('taper')?'taper':'cylinder';
    if(kind==='taper'||index<0)next.steps.push(updated);else next.steps[index]=updated;
+  }else if(kind==='innerSections'||kind==='innerTaper'||kind==='innerTaper-existing'){
+   updated.type=kind.includes('Taper')?'taper':'cylinder';
+   if(index<0)next.innerSections.push(updated);else next.innerSections[index]=updated;
   }else{if(index<0)next[kind].push(updated);else next[kind][index]=updated}
   applyModel(next);$('feature-dialog').close();
  }catch(error){$('feature-error').textContent=error.message}
@@ -146,12 +164,14 @@ async function createStep(){
  try{
   if(!worker)worker=new Worker(new URL('./cad.worker.js',import.meta.url),{type:'module'});
   const id=++workerJob;
+  const modelSnapshot=JSON.stringify(model);
   const data=await new Promise((resolve,reject)=>{
    const timeout=setTimeout(()=>{worker.removeEventListener('message',handler);reject(Error('Превышено время построения STEP'))},120000);
    const handler=event=>{if(event.data?.id!==id)return;clearTimeout(timeout);worker.removeEventListener('message',handler);
     event.data.ok?resolve(event.data.buffer):reject(Error(event.data.error))};
    worker.addEventListener('message',handler);worker.postMessage({id,command:'step',profile:profile.polygon});
   });
+  if(modelSnapshot!==JSON.stringify(model))throw Error('Размеры изменились во время экспорта. Построй STEP заново');
   const blob=new Blob([data],{type:'application/step'});
   if(blob.size<200)throw Error('CAD-ядро вернуло пустой STEP');
   generatedFile=new File([blob],(model.name.replace(/[^\p{L}\p{N}_-]+/gu,'_')||'detail')+'.step',{type:'application/step'});
@@ -203,6 +223,7 @@ function bind(){
  $('part-name').addEventListener('change',editBase);$('part-bore').addEventListener('change',editBase);
  $('add-step').addEventListener('click',()=>openEditor('step'));$('add-taper').addEventListener('click',()=>openEditor('taper'));
  $('add-od-groove').addEventListener('click',()=>openEditor('grooves'));$('add-id-groove').addEventListener('click',()=>openEditor('innerGrooves'));
+ $('add-id-section').addEventListener('click',()=>openEditor('innerSections'));$('add-id-taper').addEventListener('click',()=>openEditor('innerTaper'));
  $('close-feature').addEventListener('click',()=>$('feature-dialog').close());$('cancel-feature').addEventListener('click',()=>$('feature-dialog').close());
  $('feature-form').addEventListener('submit',saveEditor);
  $('stock-next').addEventListener('click',()=>{if(editBase())chooseStep('features')});
