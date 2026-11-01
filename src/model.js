@@ -26,13 +26,14 @@ export function validateModel(m){
  for(const [list,inner] of [[m.grooves,false],[m.innerGrooves,true]]){
   if(!Array.isArray(list)||list.length>MAX_FEATURES)throw Error('Слишком много канавок');
   for(const g of list){
-   if(!g||!nonnegative(g.z)||!positive(g.width)||!positive(g.d)||g.z+g.width>z+1e-8)throw Error('Канавка выходит за длину детали');
+   if(!g||!nonnegative(g.z)||!positive(g.width)||g.width<0.001||!positive(g.d)||g.z+g.width>z+1e-8)throw Error('Канавка выходит за длину детали');
    if(!inner && g.d<=m.bore)throw Error('Наружная канавка пересекает отверстие');
    if(inner&&g.d<=m.bore)throw Error('Внутренняя канавка должна быть шире отверстия');
   }
  }
  // Local wall thickness at every transition is evaluated below.
- const points=buildBoundaries(m);
+ const bounds=buildBoundaries(m);
+ const points=[...bounds,...bounds.slice(0,-1).map((v,i)=>(v+bounds[i+1])/2)];
  for(const zi of points){
   const outer=outsideAt(m,zi),inside=insideAt(m,zi);
   if(inner>=outer-1e-7)throw Error('Канавки пересекаются или стенка стала нулевой около Z='+zi.toFixed(2));
