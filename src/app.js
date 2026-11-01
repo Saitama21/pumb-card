@@ -1,15 +1,17 @@
 import {exampleModel,newId,modelProfile,sanitizeModel,totalLength,outsideAt} from './model.js';
 import {updatePreview,drawProfile,fitCamera,zoom} from './preview.js';
+import {drawLiveBlueprint,selectionDetails,featureBounds,toDisplayZ,fromDisplayZ,format} from './live-blueprint.js';
 const $=id=>document.getElementById(id);
-const STORAGE='cnc-toolbox-pro-current-v1',THEME='cnc-toolbox-pro-theme-v1';
+const STORAGE='cnc-toolbox-pro-current-v1',THEME='cnc-toolbox-pro-theme-v1',ORIGIN='cnc-toolbox-pro-z-origin-v1';
 const fmt=(n,d=2)=>Number(n).toFixed(d).replace('.',',');
 const num=v=>Number(String(v).trim().replace(',','.'));
 const clone=m=>structuredClone(m);
-let model,profile,generatedFile=null,step='stock',active='home',editor=null,toastTimer,worker,workerJob=0;
+let model,profile,generatedFile=null,step='stock',active='home',editor=null,toastTimer,worker,workerJob=0,origin='left',selection=null;
 function toast(message){const el=$('toast');el.textContent=message;el.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.hidden=true,2600)}
 function restore(){
  try{model=sanitizeModel(JSON.parse(localStorage.getItem(STORAGE)||'null'))}catch{model=exampleModel()}
  try{document.documentElement.dataset.theme=localStorage.getItem(THEME)==='light'?'light':'dark'}catch{document.documentElement.dataset.theme='dark'}
+ try{origin=localStorage.getItem(ORIGIN)==='right'?'right':'left'}catch{origin='left'}
 }
 function store(){try{localStorage.setItem(STORAGE,JSON.stringify(model))}catch{toast('Не удалось сохранить. Скачай JSON проекта')}}
 function applyModel(next){
@@ -27,12 +29,36 @@ function page(next){
   selected?item.setAttribute('aria-current','page'):item.removeAttribute('aria-current');
  }
  if(next==='preview'){updatePreview($('cad-canvas'),profile);drawProfile($('profile-svg'),profile);renderTree()}
- if(next==='edit')chooseStep(step);
+ if(next==='edit'){chooseStep(step);drawBlueprint()}
  window.scrollTo({top:0,behavior:'instant'});
 }
 function chooseStep(next){
  step=next;$('editor-stock').hidden=next!=='stock';$('editor-features').hidden=next!=='features';
  for(const button of document.querySelectorAll('[data-step]'))button.classList.toggle('current',button.dataset.step===next);
+ drawBlueprint();
+}
+function featureKind(kind){return kind==='step'?'steps':kind}
+function renderZ(z,span){return 'Z'+fmt(toDisplayZ(z,span,totalLength(model),origin))+'–'+fmt(toDisplayZ(z,span,totalLength(model),origin)+span)}
+function drawBlueprint(){
+ const info=selectionDetails(model,selection,origin);
+ const desc=$('blueprint-description');
+ desc.textContent=info?info.title+' · '+info.label:'Нажми на участок или выбери операцию';
+ $('blueprint-edit').hidden=!info;
+ for(const button of document.querySelectorAll('.feature-row')){
+  const selected=!!info&&button.dataset.kind===info.kind&&Number(button.dataset.index)===info.index;
+  button.classList.toggle('is-selected',selected);
+  button.setAttribute('aria-pressed',String(selected));
+ }
+ for(const button of document.querySelectorAll('[data-origin]')){
+  const yes=button.dataset.origin===origin;button.classList.toggle('is-active',yes);
+  button.setAttribute('aria-pressed',String(yes));
+ }
+ drawLiveBlueprint($('live-blueprint'),model,profile,selection,origin,item=>{
+  selection=item;drawBlueprint();
+ });
+}
+function setSelection(kind,index){
+ selection={kind:featureKind(kind),index};drawBlueprint();
 }
 function buttonFeature(title,detail,index,kind){
  const button=document.createElement('button');button.type='button';button.className='feature-row';
@@ -41,7 +67,10 @@ function buttonFeature(title,detail,index,kind){
  const strong=document.createElement('strong');strong.textContent=title;
  const small=document.createElement('small');small.textContent=detail;copy.append(strong,small);
  const arrow=document.createElement('span');arrow.className='feature-chevron';arrow.textContent='›';
- button.append(n,copy,arrow);button.addEventListener('click',()=>openEditor(kind,index));return button;
+ button.append(n,copy,arrow);
+ button.dataset.kind=featureKind(kind);button.dataset.index=String(index);
+ button.addEventListener('click',()=>{setSelection(kind,index);openEditor(kind,index)});
+ return button;
 }
 function render(){
  $('part-name').value=model.name;$('part-bore').value=fmt(model.bore);
@@ -53,17 +82,21 @@ function render(){
  const renderGrooves=(key,id,kind)=>{
   const el=$(id);el.replaceChildren();
   if(!model[key].length){const p=document.createElement('p');p.className='form-note';p.textContent='Нет операций — добавь при необходимости';el.append(p)}
-  model[key].forEach((g,i)=>el.append(buttonFeature('Канавка '+kind,'Z '+fmt(g.z)+' · b '+fmt(g.width)+' · ⌀'+fmt(g.d)+' мм',i,key)));
+  model[key].forEach((g,i)=>el.append(buttonFeature('Канавка '+kind,renderZ(g.z,g.width)+' · b '+fmt(g.width)+' · ⌀'+fmt(g.d)+' мм',i,key)));
  };
  const sections=$('id-sections');sections.replaceChildren();
  if(!model.innerSections.length){const p=document.createElement('p');p.className='form-note';p.textContent='Нет дополнительных расточек. Сквозное отверстие задаётся на первом шаге.';sections.append(p)}
  model.innerSections.forEach((seg,i)=>sections.append(buttonFeature(seg.type==='taper'?'Внутренний конус':'Внутренняя ступень',
-   'Z '+fmt(seg.z)+' · L '+fmt(seg.length)+' · ⌀'+fmt(seg.d)+(seg.type==='taper'?' → ⌀'+fmt(seg.dEnd):'')+' мм',i,'innerSections')));
+   renderZ(seg.z,seg.length)+' · L '+fmt(seg.length)+' · ⌀'+fmt(seg.d)+(seg.type==='taper'?' → ⌀'+fmt(seg.dEnd):'')+' мм',i,'innerSections')));
  renderGrooves('grooves','od-grooves','OD');renderGrooves('innerGrooves','id-grooves','ID');
+ $('id-section-count').textContent=String(model.innerSections.length);
+ $('od-groove-count').textContent=String(model.grooves.length);
+ $('id-groove-count').textContent=String(model.innerGrooves.length);
  const s=$('summary-strip');s.replaceChildren();
  for(const t of ['⌀'+fmt(profile.maxD)+' макс.','L '+fmt(profile.length)+' мм','Отверстие ⌀'+fmt(model.bore)]){
   const span=document.createElement('span');span.textContent=t;s.append(span);
  }
+ drawBlueprint();
  if(active==='preview'){drawProfile($('profile-svg'),profile);updatePreview($('cad-canvas'),profile);renderTree()}
 }
 function renderTree(){
@@ -115,9 +148,16 @@ function openEditor(kind,index=-1){
  if(kind==='step'&&entry.type==='taper')kind='taper-existing';
  if(kind==='innerSections'&&index>=0&&entry.type==='taper')kind='innerTaper-existing';
  const fields=kind==='taper-existing'?defs.taper:kind==='innerTaper-existing'?defs.innerTaper:defs[kind];
+ // Display the nearest boundary from the selected face; store original geometry from left.
+ const shown={...entry};
+ if('z' in shown){
+  const span='width' in shown?shown.width:shown.length;
+  shown.z=toDisplayZ(shown.z,span,L,origin);
+ }
  editor={kind,index,entry};
  $('feature-title').textContent=kind==='step'?'Ступень':kind.startsWith('taper')?'Конус':kind.startsWith('inner')?(kind.includes('Taper')?'Внутренний конус':'Внутренняя ступень'):kind==='grooves'?'Канавка OD':'Канавка ID';
- $('feature-fields').replaceChildren(...fields.map(([name,label])=>field(name,label,entry[name])));
+ $('feature-fields').replaceChildren(...fields.map(([name,label])=>
+  field(name,name==='z'?(origin==='right'?'От правого торца до ближней границы Z, мм':'От левого торца до начала Z, мм'):label,shown[name])));
  const del=$('remove-feature');if(del)del.remove();
  if(index>=0){
   const remove=document.createElement('button');remove.type='button';remove.id='remove-feature';remove.className='button ghost';remove.textContent='Удалить операцию';
@@ -125,7 +165,7 @@ function openEditor(kind,index=-1){
    const next=clone(model),key=editor.kind==='step'||editor.kind==='taper-existing'?'steps':editor.kind.startsWith('innerTaper')?'innerSections':editor.kind;
    if(key==='steps'&&next.steps.length===1){$('feature-error').textContent='Нельзя удалить последнюю ступень';return}
    next[key].splice(editor.index,1);
-   try{applyModel(next);$('feature-dialog').close()}catch(error){$('feature-error').textContent=error.message}
+   try{selection=null;applyModel(next);$('feature-dialog').close()}catch(error){$('feature-error').textContent=error.message}
   });$('feature-fields').append(remove);
  }
  $('feature-error').textContent='';$('feature-dialog').showModal();
@@ -138,6 +178,10 @@ function saveEditor(event){
   if(!Number.isFinite(value)){$('feature-error').textContent='Введи корректное число';return}
   updated[name]=value;
  }
+ if('z' in updated){
+  const span='width' in updated?updated.width:updated.length;
+  updated.z=fromDisplayZ(updated.z,span,totalLength(model),origin);
+ }
  try{
   if(kind==='step'||kind==='taper'||kind==='taper-existing'){
    updated.type=kind.startsWith('taper')?'taper':'cylinder';
@@ -146,6 +190,8 @@ function saveEditor(event){
    updated.type=kind.includes('Taper')?'taper':'cylinder';
    if(index<0)next.innerSections.push(updated);else next.innerSections[index]=updated;
   }else{if(index<0)next[kind].push(updated);else next[kind][index]=updated}
+  const selectKind=kind==='step'||kind==='taper'||kind==='taper-existing'?'steps':kind.startsWith('innerTaper')?'innerSections':kind;
+  selection={kind:selectKind,index:index<0?next[selectKind].length-1:index};
   applyModel(next);$('feature-dialog').close();
  }catch(error){$('feature-error').textContent=error.message}
 }
@@ -198,7 +244,7 @@ async function importProject(file){
   if(file.size>250000)throw Error('Файл слишком большой');
   const candidate=sanitizeModel(JSON.parse(await file.text()));
   if(!confirm('Открыть этот проект? Текущая геометрия будет заменена.'))return;
-  applyModel(candidate);page('edit');chooseStep('stock');toast('Проект загружен');
+  selection=null;applyModel(candidate);page('edit');chooseStep('stock');toast('Проект загружен');
  }catch(error){toast('Невозможно открыть проект: '+error.message)}
 }
 function setTheme(theme){
@@ -212,7 +258,7 @@ function bind(){
  for(const b of document.querySelectorAll('[data-step]'))b.addEventListener('click',()=>{page('edit');chooseStep(b.dataset.step)});
  $('new-project').addEventListener('click',()=>{
   if(!confirm('Создать новую деталь? Текущая будет заменена. При необходимости сначала скачай JSON.'))return;
-  applyModel({version:1,name:'Новая деталь',bore:0,steps:[{id:newId(),type:'cylinder',d:38,length:37}],grooves:[],innerGrooves:[]});
+  selection=null;applyModel({version:1,name:'Новая деталь',bore:0,steps:[{id:newId(),type:'cylinder',d:38,length:37}],grooves:[],innerGrooves:[]});
   page('edit');chooseStep('stock');
  });
  $('continue-project').addEventListener('click',()=>page('edit'));
@@ -228,7 +274,23 @@ function bind(){
  $('feature-form').addEventListener('submit',saveEditor);
  $('stock-next').addEventListener('click',()=>{if(editBase())chooseStep('features')});
  $('features-next').addEventListener('click',()=>page('preview'));
- $('reset-model').addEventListener('click',()=>{if(confirm('Вернуть пример Ø38 и заменить текущую деталь?'))applyModel(exampleModel())});
+ $('blueprint-open3d').addEventListener('click',()=>page('preview'));
+ $('blueprint-edit').addEventListener('click',()=>{
+  if(!selection)return;
+  const k=selection.kind;
+  if(k==='steps'){chooseStep('stock');openEditor('step',selection.index)}
+  else{chooseStep('features');if(k==='grooves')$('group-od').open=true;
+   if(k==='innerGrooves')$('group-in-groove').open=true;
+   if(k==='innerSections')$('group-id').open=true;
+   openEditor(k,selection.index);
+  }
+ });
+ for(const button of document.querySelectorAll('[data-origin]'))button.addEventListener('click',()=>{
+  origin=button.dataset.origin;
+  try{localStorage.setItem(ORIGIN,origin)}catch{}
+  render();
+ });
+ $('reset-model').addEventListener('click',()=>{if(confirm('Вернуть пример Ø38 и заменить текущую деталь?')){selection=null;applyModel(exampleModel())}});
  $('tab-model').addEventListener('click',()=>setView('model'));$('tab-drawing').addEventListener('click',()=>setView('drawing'));
  $('reset-camera').addEventListener('click',fitCamera);$('zoom-in').addEventListener('click',()=>zoom(.78));$('zoom-out').addEventListener('click',()=>zoom(1.28));
  $('make-step').addEventListener('click',createStep);$('share-step').addEventListener('click',shareStep);
