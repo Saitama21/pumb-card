@@ -88,8 +88,25 @@ async function checkSize(w,h){
  if(!chosen.includes('Канавка OD'))throw Error('Edited groove did not highlight on live drawing at '+w+': '+chosen);
  const selectedRegion=await page.$eval('#live-blueprint',el=>el.querySelector('[clip-path="url(#blueprint-part)"]')!==null);
  if(!selectedRegion)throw Error('Blueprint selection highlight absent at '+w);
+ await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
+ await delay(140);
+ const bottomAction=await page.evaluate(()=>{
+  const button=document.querySelector('#features-next').getBoundingClientRect(),dock=document.querySelector('.dock').getBoundingClientRect();
+  return {top:button.top,bottom:button.bottom,dockTop:dock.top,scrollY:window.scrollY};
+ });
+ if(bottomAction.bottom>bottomAction.dockTop)throw Error('Model button under dock: '+JSON.stringify(bottomAction));
  await page.click('#features-next');
- await page.waitForSelector('#page-preview:not([hidden])');
+ await delay(150);
+ const went=await page.$eval('#page-preview',node=>!node.hidden);
+ if(!went){
+  const state=await page.evaluate(()=>({stepVisible:!document.querySelector('#editor-features').hidden,
+   error:document.querySelector('#toast').textContent,
+   blueprint:document.querySelector('#blueprint-description').textContent,
+   z:localStorage.getItem('cnc-toolbox-pro-z-origin-v1'),
+   sections:document.querySelector('#id-sections').textContent,
+   grooves:document.querySelector('#od-grooves').textContent}));
+  throw Error('Failed to reach 3D: '+JSON.stringify(state)+' | '+faults.join(' | '));
+ }
  const preview=await page.evaluate(()=>{
   const canvas=document.querySelector('#cad-canvas');
   return {rendered:canvas.width>100&&canvas.height>100,tree:document.querySelectorAll('.tree-entry').length,
