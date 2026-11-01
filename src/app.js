@@ -54,7 +54,11 @@ function drawBlueprint(){
   button.setAttribute('aria-pressed',String(yes));
  }
  drawLiveBlueprint($('live-blueprint'),model,profile,selection,origin,item=>{
-  selection=item;drawBlueprint();
+  selection=item;
+  if(item.kind==='innerSections')$('group-id').open=true;
+  if(item.kind==='grooves')$('group-od').open=true;
+  if(item.kind==='innerGrooves')$('group-in-groove').open=true;
+  drawBlueprint();
  });
 }
 function setSelection(kind,index){
@@ -78,7 +82,7 @@ function render(){
  $('home-name').textContent=model.name;
  $('home-size').textContent='⌀'+fmt(profile.maxD)+' × '+fmt(profile.length)+' мм · '+model.steps.length+' ступеней';
  $('steps-list').replaceChildren(...model.steps.map((s,i)=>buttonFeature(s.type==='taper'?'Конус':'Ступень',
-  s.type==='taper'?'⌀'+fmt(s.d)+' → ⌀'+fmt(s.dEnd)+' · L '+fmt(s.length)+' мм':'⌀'+fmt(s.d)+' · L '+fmt(s.length)+' мм',i,'step')));
+  (s.type==='taper'?'⌀'+fmt(s.d)+' → ⌀'+fmt(s.dEnd):'⌀'+fmt(s.d))+' · '+renderZ(featureBounds(model,'steps',i).z0,s.length)+' · L '+fmt(s.length)+' мм',i,'step')));
  const renderGrooves=(key,id,kind)=>{
   const el=$(id);el.replaceChildren();
   if(!model[key].length){const p=document.createElement('p');p.className='form-note';p.textContent='Нет операций — добавь при необходимости';el.append(p)}
