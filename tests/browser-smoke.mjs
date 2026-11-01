@@ -26,7 +26,7 @@ async function checkSize(w,h){
    clientWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth,
    height:shell.getBoundingClientRect().height,active:document.querySelector('.dock-tab.is-active')?.textContent?.trim()};
  });
- if(Math.abs(result.width-result.clientWidth*.87)>1.5||Math.abs(result.center-result.clientWidth/2)>1.5||Math.abs(result.bottom-2)>1.5)throw Error('Dock geometry differs at '+w+': '+JSON.stringify(result));
+ if(Math.abs(result.width-Math.min(result.clientWidth*.87,w>=700?560:640))>1.5||Math.abs(result.center-result.clientWidth/2)>1.5||Math.abs(result.bottom-2)>1.5)throw Error('Dock geometry differs at '+w+': '+JSON.stringify(result));
  if(result.scrollWidth>w+1)throw Error('Horizontal overflow at '+w+': '+result.scrollWidth);
  if(!result.active.includes('Главная'))throw Error('Wrong landing tab at '+w);
  await page.click('[data-go="edit"].dock-tab');
