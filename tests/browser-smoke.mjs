@@ -34,7 +34,9 @@ async function checkSize(w,h){
  const count=await page.$$('#steps-list .feature-row');
  if(count.length!==4)throw Error('Sample has wrong operation tree at '+w);
  await page.click('#stock-next');
- await page.waitForSelector('#editor-features:not([hidden])');
+ await delay(120);
+ const nextStep=await page.evaluate(()=>({hidden:document.querySelector('#editor-features').hidden,toast:document.querySelector('#toast').textContent,bore:document.querySelector('#part-bore').value,errors:document.querySelector('#feature-error').textContent}));
+ if(nextStep.hidden)throw Error('Stock-to-features navigation failed: '+JSON.stringify(nextStep)+' | '+faults.join(' | '));
  await page.click('#add-od-groove');
  await page.waitForSelector('#feature-dialog[open]');
  await page.click('#submit-feature');
