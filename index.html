@@ -1,107 +1,94 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#080a12">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Button Motion Lab</title>
-<link rel="manifest" href="./manifest.webmanifest">
-<link rel="preconnect" href="https://images.unsplash.com">
-<link rel="stylesheet" href="./styles.css">
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+ <meta name="theme-color" content="#07121e">
+ <meta name="apple-mobile-web-app-capable" content="yes">
+ <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+ <meta name="description" content="CNC Toolbox Pro: параметрический конструктор токарных деталей, офлайн 3D, настоящий STEP для eDrawings.">
+ <link rel="manifest" href="./manifest.webmanifest">
+ <link rel="icon" type="image/svg+xml" href="./icon.svg">
+ <title>CNC Toolbox Pro · 3D-конструктор</title>
 </head>
 <body>
-<main class="app">
-  <header class="hero">
-    <div>
-      <div class="eyebrow">PUMB-CARD / BUTTON LAB</div>
-      <h1>Кнопки.<br>От простого до вау.</h1>
-    </div>
-    <div class="fps" id="fps">-- FPS</div>
+ <main class="app-shell" id="app-shell">
+  <header class="app-header">
+   <div class="brand"><div class="brand-icon" aria-hidden="true">⌖</div><div><strong>CNC Toolbox <em>Pro</em></strong><small>SINUMERIK 828D · CAD WORKSPACE</small></div></div>
+   <div class="header-right"><span class="header-badge">OFFLINE</span><button id="theme-toggle" class="icon-button" aria-label="Сменить тему" type="button">◐</button></div>
   </header>
 
-  <p class="intro">Только кнопки — каждая показывает отдельный уровень графики и анимации. Нажимай, держи, води пальцем.</p>
-
-  <section class="stack">
-
-    <button class="demo-btn basic" data-demo="basic">
-      <span class="num">01</span>
-      <span class="copy"><b>Обычная</b><small>HTML + CSS</small></span>
-      <span class="arrow">→</span>
-    </button>
-
-    <button class="demo-btn press" data-demo="press">
-      <span class="num">02</span>
-      <span class="copy"><b>Живая кнопка</b><small>scale · spring · shadow</small></span>
-      <span class="pulse-dot"></span>
-    </button>
-
-    <button class="demo-btn glow" data-demo="glow">
-      <span class="num">03</span>
-      <span class="copy"><b>Свет и стекло</b><small>glow · blur · liquid highlight</small></span>
-      <span class="glass-orb"></span>
-    </button>
-
-    <button class="demo-btn svg-btn" data-demo="svg">
-      <svg class="svg-line" viewBox="0 0 520 100" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M8 50 C95 4 170 96 260 50 S425 4 512 50"/>
-      </svg>
-      <span class="num">04</span>
-      <span class="copy"><b>Векторная</b><small>SVG stroke animation</small></span>
-      <span class="vector-chip">SVG</span>
-    </button>
-
-    <button class="demo-btn canvas-btn" data-demo="canvas">
-      <canvas id="particleCanvas"></canvas>
-      <span class="num">05</span>
-      <span class="copy"><b>Частицы</b><small>Canvas 2D · realtime</small></span>
-      <span class="particle-badge">2D</span>
-    </button>
-
-    <button class="demo-btn webgl-btn" id="webglButton" data-demo="webgl">
-      <canvas id="webglCanvas"></canvas>
-      <span class="num">06</span>
-      <span class="copy"><b>Жидкий GPU</b><small>WebGL shader</small></span>
-      <span class="gpu-badge">GPU</span>
-    </button>
-
-    <button class="demo-btn tilt-btn" id="tiltButton" data-demo="tilt">
-      <span class="tilt-slab slab-a"></span>
-      <span class="tilt-slab slab-b"></span>
-      <span class="num">07</span>
-      <span class="copy"><b>3D-параллакс</b><small>perspective · touch tilt</small></span>
-      <span class="cube">◆</span>
-    </button>
-
-    <button class="demo-btn raster-btn" id="rasterButton" data-demo="raster">
-      <span class="raster-bg"></span>
-      <span class="mini-card card-a">
-        <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=420&q=82" alt="">
-        <i>TECH</i>
-      </span>
-      <span class="mini-card card-b">
-        <img src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=420&q=82" alt="">
-        <i>WEBP</i>
-      </span>
-      <span class="mini-card card-c">
-        <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=420&q=82" alt="">
-        <i>PHOTO</i>
-      </span>
-      <span class="num">08</span>
-      <span class="copy raster-copy"><b>Растровые карточки</b><small>photo / WebP-style layers inside button</small></span>
-      <span class="top-badge">MAX</span>
-    </button>
-
+  <section class="page home-page" id="page-home">
+   <div class="section-kicker">3D / PARAMETRIC / ENGINEERING</div>
+   <div class="hero-card">
+    <div class="hero-glow"></div><div class="hero-copy">
+     <span class="section-kicker">CNC TOOLBOX / CAD</span>
+     <h1>3D-конструктор<br><span>токарных деталей</span></h1>
+     <p>Задаёшь геометрию цифрами. Проверяешь модель. Получаешь настоящий STEP для eDrawings.</p>
+    </div>
+    <svg class="hero-figure" viewBox="0 0 420 200" aria-hidden="true">
+      <defs><linearGradient id="metal" x2="0.85" y2="1"><stop stop-color="#b9dcfa"/><stop offset=".31" stop-color="#3a617e"/><stop offset=".65" stop-color="#c4efff"/><stop offset="1" stop-color="#2a4e69"/></linearGradient></defs>
+      <g fill="none" stroke="#075a99" stroke-width="0.7" opacity=".38"><path d="M0 30H420M0 65H420M0 100H420M0 135H420M0 170H420"/><path d="M30 0V200M80 0V200M130 0V200M180 0V200M230 0V200M280 0V200M330 0V200M380 0V200"/></g>
+      <path d="M65 100L125 55L206 55L236 75L302 75L360 104L308 145L245 145L215 164L120 164Z" fill="url(#metal)" stroke="#a4defc" stroke-width="1.9"/>
+      <path d="M125 55V164M206 55L206 164M236 75L245 145M302 75L308 145" stroke="#d5f3ff" opacity=".8"/>
+      <ellipse cx="360" cy="104" rx="23" ry="42" fill="#10334f" stroke="#c3edff" stroke-width="2"/>
+      <ellipse cx="360" cy="104" rx="12" ry="23" fill="#06111c" stroke="#79c9f9" stroke-width="2"/>
+    </svg>
+    <div class="hero-actions"><button id="new-project" class="button primary" type="button"><span class="btn-symbol">＋</span> Новая деталь</button><button id="load-project" class="button ghost" type="button">Открыть JSON</button></div>
+   </div>
+   <div class="home-stats"><div><strong>01</strong><span>Заготовка</span></div><div><strong>02</strong><span>Операции</span></div><div><strong>03</strong><span>3D + STEP</span></div></div>
+   <button class="surface recent-project" id="continue-project" type="button"><span class="recent-icon">◈</span><span><strong id="home-name">Втулка Ø38</strong><small id="home-size">Ø38 × 37 мм · 4 ступени</small></span><span class="arrow">↗</span></button>
+   <p class="fine-print">Ручной ввод размеров · Без ИИ · Геометрия B-Rep через Open CASCADE</p>
   </section>
 
-  <section class="hint">
-    <span>Тап</span>
-    <span>Удержание</span>
-    <span>Проведи пальцем</span>
+  <section class="page edit-page" id="page-edit" hidden>
+   <div class="page-title"><button class="back-button" data-go="home" aria-label="Назад" type="button">‹</button><div><small>PARAMETRIC / OPERATIONS</small><h1>Конструктор детали</h1></div><button class="tiny-action" id="reset-model" type="button">Сброс</button></div>
+   <div class="stepper"><button type="button" class="step current" data-step="stock"><b>1</b><span>Заготовка</span></button><span class="step-join"></span><button type="button" class="step" data-step="features"><b>2</b><span>Операции</span></button><span class="step-join"></span><button type="button" class="step" data-go="preview"><b>3</b><span>Модель</span></button></div>
+   <section id="editor-stock" class="surface form-card">
+    <div class="card-head"><h2>Параметры детали</h2><span class="card-chip">ММ / Ø</span></div>
+    <label class="field"><span>Название</span><input id="part-name" type="text" maxlength="70" autocomplete="off" placeholder="Например: Втулка Ø38"></label>
+    <div class="field-row"><label class="field"><span>Отверстие сквозное Ø</span><input id="part-bore" type="text" inputmode="decimal" autocomplete="off" aria-describedby="bore-note"></label><label class="field"><span>Общая длина, мм</span><output class="read-only" id="stock-length">37,00</output></label></div>
+    <p class="form-note" id="bore-note">0 — сплошная деталь. Сквозное осевое отверстие; глухие и поперечные добавим отдельно.</p>
+    <div class="section-toolbar"><strong>Наружный контур</strong><button class="mini-add" id="add-step" type="button">＋ Ступень</button><button class="mini-add" id="add-taper" type="button">＋ Конус</button></div>
+    <div class="feature-list" id="steps-list"></div>
+    <button class="button primary wide" id="stock-next" type="button">Далее · операции <span>→</span></button>
+   </section>
+   <section id="editor-features" class="surface form-card" hidden>
+    <div class="card-head"><h2>Операции / X–Z</h2><span class="card-chip">G54 / ОСЬ Z</span></div>
+    <p class="form-note">Все размеры задаются в миллиметрах. Положение Z отсчитывается от левого торца будущей детали.</p>
+    <div class="feature-group"><div class="section-toolbar"><strong>Наружные канавки</strong><button class="mini-add" id="add-od-groove" type="button">＋ Добавить</button></div><div id="od-grooves" class="feature-list"></div></div>
+    <div class="feature-group"><div class="section-toolbar"><strong>Внутренние канавки</strong><button class="mini-add" id="add-id-groove" type="button">＋ Добавить</button></div><div id="id-grooves" class="feature-list"></div></div>
+    <div class="axis-note"><span>⌖</span><div><b>Ось детали</b><small>Наружные ступени и канавки формируют точный профиль вращения. Сечения и STEP строятся по одной геометрии.</small></div></div>
+    <button class="button primary wide" id="features-next" type="button">Построить 3D-модель <span>⬡</span></button>
+   </section>
   </section>
-</main>
 
-<script src="./app.js"></script>
-</body>
-</html>
+  <section class="page preview-page" id="page-preview" hidden>
+   <div class="page-title"><button class="back-button" data-go="edit" aria-label="Редактировать" type="button">‹</button><div><small>REAL GEOMETRY / B-REP</small><h1>3D-модель</h1></div><span class="status-label" id="model-state">ПРОФИЛЬ</span></div>
+   <div class="view-tabs" role="tablist" aria-label="Режим просмотра"><button id="tab-model" class="is-active" type="button" aria-selected="true">⬡ Модель</button><button id="tab-drawing" type="button" aria-selected="false">⌗ Контур</button></div>
+   <div class="viewer surface" id="viewer">
+    <div class="viewer-overlay"><span class="viewer-chip">3D / ORBIT</span><div class="viewer-toolbar"><button id="reset-camera" type="button" aria-label="Исходный ракурс">⌖</button><button id="zoom-in" type="button" aria-label="Приблизить">＋</button><button id="zoom-out" type="button" aria-label="Отдалить">−</button></div></div>
+    <canvas id="cad-canvas" aria-label="Интерактивный трёхмерный вид токарной детали"></canvas>
+    <svg id="profile-svg" class="profile-svg" viewBox="0 0 460 270" role="img" aria-label="Профиль детали в разрезе" hidden></svg>
+   </div>
+   <div class="summary-strip" id="summary-strip"><span>Ø38 макс.</span><span>L 37 мм</span><span>Отверстие Ø24</span></div>
+   <section class="surface tree-card"><div class="section-toolbar"><strong>Дерево операций</strong><button class="mini-add" data-go="edit" type="button">Редактировать ↗</button></div><div id="tree-list" class="tree-list"></div></section>
+   <div class="export-actions"><button id="make-step" class="button primary" type="button">▤ Создать STEP</button><button id="share-step" class="button success" type="button" disabled>↗ Поделиться</button></div>
+   <div class="fine-print export-message" id="export-message" role="status" aria-live="polite">STEP создаётся CAD-ядром Open CASCADE. После создания можно передать файл в eDrawings через меню iOS.</div>
+  </section>
+
+  <section class="page settings-page" id="page-settings" hidden>
+   <div class="page-title"><div><small>WORKSPACE / SYSTEM</small><h1>Параметры</h1></div><span class="status-label">V 0.1</span></div>
+   <div class="surface settings-card"><div class="setting-header"><b>Оформление</b><small>Тема приложения</small></div><div class="theme-choice"><button data-theme="dark" class="is-active" type="button">☾ Графит</button><button data-theme="light" type="button">☀ Титан</button></div></div>
+   <div class="surface settings-card"><div class="setting-header"><b>Проект</b><small>Сохраняется на этом устройстве автоматически</small></div><button id="download-project" type="button" class="button ghost wide">↓ Скачать проект JSON</button><button id="settings-import" type="button" class="button ghost wide">↑ Открыть проект JSON</button></div>
+   <div class="surface settings-card"><div class="setting-header"><b>Точность и ограничения</b></div><p class="small-description">Только осесимметричные тела вращения: наружные ступени, конусы, сквозное отверстие, кольцевые канавки OD и ID. Экспорт — настоящий STEP, не STL и не изображение. Резьба, фаски, глухое сверление, фрезерные пазы и свободные эскизы появятся после проверки отдельных CAD-операций.</p></div>
+   <div class="surface settings-card"><div class="setting-header"><b>Open-source ядро</b></div><p class="small-description">Replicad (MIT), Open CASCADE (LGPL-2.1). CAD выполняется в Web Worker; при первой установке офлайн-ядро загружается и кэшируется вместе с приложением.</p></div>
+  </section>
+ </main>
+
+ <nav class="dock" aria-label="Навигация"><button data-go="home" class="dock-tab is-active" aria-current="page" type="button"><span class="dock-icon">⌂</span><span>Главная</span></button><button data-go="edit" class="dock-tab" type="button"><span class="dock-icon">▤</span><span>Контур</span></button><button data-go="preview" class="dock-tab" type="button"><span class="dock-icon">⬡</span><span>3D-модель</span></button><button data-go="settings" class="dock-tab" type="button"><span class="dock-icon">☷</span><span>Ещё</span></button></nav>
+ <dialog id="feature-dialog" class="feature-dialog"><form id="feature-form" method="dialog"><header><div><small>PARAMETRIC FEATURE</small><h2 id="feature-title">Ступень</h2></div><button type="button" id="close-feature" class="dialog-close" aria-label="Закрыть">×</button></header><div id="feature-fields" class="feature-fields"></div><p id="feature-error" class="form-error" role="alert"></p><div class="dialog-actions"><button id="cancel-feature" type="button" class="button ghost">Отмена</button><button id="submit-feature" type="submit" class="button primary">Сохранить</button></div></form></dialog>
+ <input type="file" accept=".json,application/json" id="project-file" hidden>
+ <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+ <script type="module" src="./src/app.js"></script>
+</body></html>
