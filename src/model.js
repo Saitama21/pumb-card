@@ -66,23 +66,17 @@ function validateAxialFeatures(m,L){
   if(sorted[i].z<sorted[i-1].z+sorted[i-1].length-EPS)throw Error('Внутренние участки перекрываются по Z');
  }
  if(m.bore===0&&sections.length){
-  // Each connected bore must open on an end face. No fully enclosed cavities in this module.
-  let cursor=sorted[0].z,open=cursor<=EPS;
-  for(let i=0;i<sorted.length;i++){
-   const s=sorted[i];
-   if(i&&s.z>cursor+EPS){
-    if(!open&&cursor<L-EPS)throw Error('Замкнутая внутренняя полость не поддерживается');
-    open=false;
-   }
-   if(s.z<=EPS)open=true;
-   cursor=s.z+s.length;
-   if(cursor>=L-EPS)open=true;
-   if(i<sorted.length-1&&sorted[i+1].z>cursor+EPS&&!open)throw Error('Глухое отверстие должно начинаться с торца');
+  // Each connected interior region must meet at least one end face; isolated voids cannot be revolved from this profile.
+  let start=sorted[0].z,end=sorted[0].z+sorted[0].length;
+  const checkOpen=()=>{if(start>EPS&&end<L-EPS)throw Error('Глухое отверстие должно выходить на левый или правый торец')};
+  for(let i=1;i<sorted.length;i++){
+   const section=sorted[i];
+   if(section.z>end+EPS){checkOpen();start=section.z;end=section.z+section.length}
+   else end=section.z+section.length;
   }
-  // A single connected section not reaching either face is an enclosed cavity.
-  if(sorted.length===1&&sorted[0].z>EPS&&sorted[0].z+sorted[0].length<L-EPS)
-   throw Error('Внутренняя полость должна выходить на торец');
+  checkOpen();
  }
+
 }
 export function validateModel(m){
  if(!m||m.version!==MODEL_VERSION||typeof m.name!=='string'||!Array.isArray(m.steps)||!m.steps.length||m.steps.length>MAX_FEATURES)throw Error('Добавь хотя бы одну ступень, максимум 80');
@@ -102,6 +96,10 @@ export function validateModel(m){
    if(!g||!nonnegative(g.z)||!positive(g.width)||g.width<0.001||!positive(g.d)||g.z+g.width>L+EPS)throw Error('Канавка выходит за длину детали');
    if(!inner&&g.d<=m.bore)throw Error('Наружная канавка пересекает отверстие');
    if(inner&&g.d<=m.bore)throw Error('Внутренняя канавка должна быть шире отверстия');
+   if(inner&&m.bore===0){
+    const covering=innerSections(m).some(section=>section.z<=g.z+EPS&&section.z+section.length>=g.z+g.width-EPS);
+    if(!covering)throw Error('Внутренняя канавка должна располагаться внутри существующей расточки');
+   }
   }
  }
  validateAxialFeatures(m,L);
