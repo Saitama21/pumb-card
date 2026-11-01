@@ -2,6 +2,13 @@
 
 **Mobile-first offline-first PWA for SINUMERIK 828D operators.** The repository has been repurposed from Button Motion Lab for this dedicated application.
 
+## v0.3 · Premium live X/Z blueprint
+- Interactive, exact **live SVG blueprint** above the editing controls, driven by the same axial model as 3D and STEP. Selected outer step, inner bore, OD/ID groove highlighted with precise Z start/end, length and diameter.
+- Tap any operation to highlight it, or select a region of the blueprint and tap **Edit**. Expandable compact operation groups reduce unnecessary scrolling on mobile.
+- **Z0 from left or right**: preference changes displayed/editable Z distances relative to the chosen face, but keeps canonical geometry measured from the left; conversion is reversible. Machine G54 is intentionally not tied to the CAD drawing origin.
+- Fixed independent bottom dock remains `position:fixed;left:50%;transform:translateX(-50%);bottom:2px;width:87%;height:68px`.
+- iPhone header adjusted to prevent the OFFLINE badge overlapping the engineering workspace subtitle.
+
 ## Available in v0.2 · Full dimensional turning
 - **Complete axial inside and outside profile** built exclusively from user-entered numbers. Outer stepped cylinders and tapers; base through-hole; multiple ID boring sections with per-segment Z start, axial depth and diameter; conical inner transitions.
 - **Blind holes from either face** with a precise flat bottom, and multi-stage stepped through holes. No invented drawing dimensions.

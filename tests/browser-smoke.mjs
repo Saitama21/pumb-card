@@ -34,6 +34,26 @@ async function checkSize(w,h){
  if(!result.active.includes('Главная'))throw Error('Wrong landing tab at '+w);
  await page.click('[data-go="edit"].dock-tab');
  await page.waitForSelector('#editor-stock:not([hidden])');
+ const blueprint=await page.evaluate(()=>({
+  paths:document.querySelectorAll('#live-blueprint path').length,
+  label:document.querySelector('#blueprint-description').textContent,
+  viewBox:document.querySelector('#live-blueprint').getAttribute('viewBox'),
+  headerClash:document.querySelector('.brand').getBoundingClientRect().right>document.querySelector('.header-right').getBoundingClientRect().left+1
+ }));
+ if(blueprint.paths<5||!blueprint.viewBox||blueprint.headerClash)throw Error('Live blueprint/header not ready at '+w+': '+JSON.stringify(blueprint));
+ await page.click('#steps-list .feature-row:nth-child(2)');
+ await page.waitForSelector('#feature-dialog[open]');
+ const focus=await page.$eval('#blueprint-description',e=>e.textContent);
+ if(!focus.includes('Наружная ступень')||!focus.includes('Z10,00–22,00'))throw Error('Feature selection not projected at '+w+': '+focus);
+ await page.click('#cancel-feature');
+ const beforeAxis=await page.$eval('#steps-list .feature-row:nth-child(2) .feature-copy small',e=>e.textContent);
+ await page.click('[data-origin="right"]');
+ const afterAxis=await page.$eval('#steps-list .feature-row:nth-child(2) .feature-copy small',e=>e.textContent);
+ if(beforeAxis===afterAxis||!afterAxis.includes('Z15,00–27,00'))throw Error('Z origin transform failed at '+w+': '+afterAxis);
+ await page.click('[data-origin="left"]');
+ await page.click('#blueprint-edit');
+ await page.waitForSelector('#feature-dialog[open]');
+ await page.click('#cancel-feature');
  const count=await page.$$('#steps-list .feature-row');
  if(count.length!==4)throw Error('Sample has wrong operation tree at '+w);
  await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
@@ -59,12 +79,34 @@ async function checkSize(w,h){
  await page.click('#submit-feature');
  const innerText=await page.$eval('#id-sections',el=>el.textContent);
  if(!innerText.includes('25,20'))throw Error('Inner bore diameter edit not reflected at '+w);
+ await page.click('#group-od summary');
  await page.click('#add-od-groove');
  await page.waitForSelector('#feature-dialog[open]');
  await page.click('#submit-feature');
  await page.waitForSelector('#od-grooves .feature-row');
+ const chosen=await page.$eval('#blueprint-description',el=>el.textContent);
+ if(!chosen.includes('Канавка OD'))throw Error('Edited groove did not highlight on live drawing at '+w+': '+chosen);
+ const selectedRegion=await page.$eval('#live-blueprint',el=>el.querySelector('[clip-path="url(#blueprint-part)"]')!==null);
+ if(!selectedRegion)throw Error('Blueprint selection highlight absent at '+w);
+ await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
+ await delay(140);
+ const bottomAction=await page.evaluate(()=>{
+  const button=document.querySelector('#features-next').getBoundingClientRect(),dock=document.querySelector('.dock').getBoundingClientRect();
+  return {top:button.top,bottom:button.bottom,dockTop:dock.top,scrollY:window.scrollY};
+ });
+ if(bottomAction.bottom>bottomAction.dockTop)throw Error('Model button under dock: '+JSON.stringify(bottomAction));
  await page.click('#features-next');
- await page.waitForSelector('#page-preview:not([hidden])');
+ await delay(150);
+ const went=await page.$eval('#page-preview',node=>!node.hidden);
+ if(!went){
+  const state=await page.evaluate(()=>({stepVisible:!document.querySelector('#editor-features').hidden,
+   error:document.querySelector('#toast').textContent,
+   blueprint:document.querySelector('#blueprint-description').textContent,
+   z:localStorage.getItem('cnc-toolbox-pro-z-origin-v1'),
+   sections:document.querySelector('#id-sections').textContent,
+   grooves:document.querySelector('#od-grooves').textContent}));
+  throw Error('Failed to reach 3D: '+JSON.stringify(state)+' | '+faults.join(' | '));
+ }
  const preview=await page.evaluate(()=>{
   const canvas=document.querySelector('#cad-canvas');
   return {rendered:canvas.width>100&&canvas.height>100,tree:document.querySelectorAll('.tree-entry').length,

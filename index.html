@@ -45,6 +45,25 @@
   <section class="page edit-page" id="page-edit" hidden>
    <div class="page-title"><button class="back-button" data-go="home" aria-label="Назад" type="button">‹</button><div><small>PARAMETRIC / OPERATIONS</small><h1>Конструктор детали</h1></div><button class="tiny-action" id="reset-model" type="button">Сброс</button></div>
    <div class="stepper"><button type="button" class="step current" data-step="stock"><b>1</b><span>Заготовка</span></button><span class="step-join"></span><button type="button" class="step" data-step="features"><b>2</b><span>Операции</span></button><span class="step-join"></span><button type="button" class="step" data-go="preview"><b>3</b><span>Модель</span></button></div>
+   <section class="blueprint-card surface" id="blueprint-card" aria-label="Живой профиль токарной детали">
+    <div class="blueprint-top">
+     <div><small class="blueprint-eyebrow">ENGINEERING / X–Z</small><strong>Профиль детали</strong></div>
+     <span class="blueprint-live"><span class="pulse-dot"></span> LIVE</span>
+    </div>
+    <svg id="live-blueprint" class="live-blueprint" viewBox="0 0 480 240" role="img" aria-label="Интерактивный контур в разрезе с размерами"></svg>
+    <div class="blueprint-bottom">
+     <div class="blueprint-selected"><small>Выбранный элемент</small><b id="blueprint-description">Нажми на участок или выбери операцию</b></div>
+     <button type="button" id="blueprint-edit" class="mini-add" hidden>Изменить ↗</button>
+    </div>
+    <div class="blueprint-controls">
+     <div class="origin-control" role="group" aria-label="Откуда показывать координату Z">
+      <button type="button" data-origin="left" class="is-active" aria-pressed="true">Z0 слева</button>
+      <button type="button" data-origin="right" aria-pressed="false">Z0 справа</button>
+     </div>
+     <button type="button" class="mini-add blueprint-open3d" id="blueprint-open3d">⬡ Открыть 3D</button>
+    </div>
+    <p class="blueprint-note">Координаты конструктора — от выбранного торца. Это не координаты станка G54.</p>
+   </section>
    <section id="editor-stock" class="surface form-card">
     <div class="card-head"><h2>Параметры детали</h2><span class="card-chip">ММ / Ø</span></div>
     <label class="field"><span>Название</span><input id="part-name" type="text" maxlength="70" autocomplete="off" placeholder="Например: Втулка Ø38"></label>
@@ -55,11 +74,23 @@
     <button class="button primary wide" id="stock-next" type="button">Далее · операции <span>→</span></button>
    </section>
    <section id="editor-features" class="surface form-card" hidden>
-    <div class="card-head"><h2>Операции / X–Z</h2><span class="card-chip">G54 / ОСЬ Z</span></div>
-    <p class="form-note">Все размеры задаются в миллиметрах. Положение Z отсчитывается от левого торца будущей детали.</p>
-    <div class="feature-group"><div class="section-toolbar"><strong>Внутренний профиль / расточки</strong><button class="mini-add" id="add-id-section" type="button">＋ Участок</button><button class="mini-add" id="add-id-taper" type="button">＋ Конус</button></div><p class="form-note">Каждому участку задаёшь Z начала, длину и Ø. Можно построить ступенчатое сквозное или глухое отверстие с несколькими диаметрами.</p><div id="id-sections" class="feature-list"></div></div>
-    <div class="feature-group"><div class="section-toolbar"><strong>Наружные канавки</strong><button class="mini-add" id="add-od-groove" type="button">＋ Добавить</button></div><div id="od-grooves" class="feature-list"></div></div>
-    <div class="feature-group"><div class="section-toolbar"><strong>Внутренние канавки</strong><button class="mini-add" id="add-id-groove" type="button">＋ Добавить</button></div><div id="id-grooves" class="feature-list"></div></div>
+    <div class="card-head"><h2>Дерево операций</h2><span class="card-chip">X / Z · ММ</span></div>
+    <p class="form-note">Выбери элемент, чтобы увидеть его на чертеже. Диаметры вводятся в миллиметрах, длины — по Z.</p>
+    <details class="feature-group op-accordion" id="group-id" open>
+     <summary><span class="group-mark">◎</span><strong>Внутренний профиль</strong><span class="group-count" id="id-section-count">0</span><span class="group-chevron">⌄</span></summary>
+     <div class="op-accordion-body">
+      <div class="section-toolbar"><span class="form-note">Ступенчатые и глухие расточки</span><button class="mini-add" id="add-id-section" type="button">＋ Участок</button><button class="mini-add" id="add-id-taper" type="button">＋ Конус</button></div>
+      <div id="id-sections" class="feature-list"></div>
+     </div>
+    </details>
+    <details class="feature-group op-accordion" id="group-od">
+     <summary><span class="group-mark">⌑</span><strong>Наружные канавки</strong><span class="group-count" id="od-groove-count">0</span><span class="group-chevron">⌄</span></summary>
+     <div class="op-accordion-body"><div class="section-toolbar"><span class="form-note">Положение · ширина · диаметр дна</span><button class="mini-add" id="add-od-groove" type="button">＋ Добавить</button></div><div id="od-grooves" class="feature-list"></div></div>
+    </details>
+    <details class="feature-group op-accordion" id="group-in-groove">
+     <summary><span class="group-mark">◉</span><strong>Внутренние канавки</strong><span class="group-count" id="id-groove-count">0</span><span class="group-chevron">⌄</span></summary>
+     <div class="op-accordion-body"><div class="section-toolbar"><span class="form-note">Кольцевые канавки внутри отверстия</span><button class="mini-add" id="add-id-groove" type="button">＋ Добавить</button></div><div id="id-grooves" class="feature-list"></div></div>
+    </details>
     <div class="axis-note"><span>⌖</span><div><b>Ось детали</b><small>Наружный и внутренний контуры, ступени, конусы и кольцевые канавки образуют единое тело вращения. Все размеры задаются вручную.</small></div></div>
     <button class="button primary wide" id="features-next" type="button">Построить 3D-модель <span>⬡</span></button>
    </section>
@@ -80,7 +111,7 @@
   </section>
 
   <section class="page settings-page" id="page-settings" hidden>
-   <div class="page-title"><div><small>WORKSPACE / SYSTEM</small><h1>Параметры</h1></div><span class="status-label">V 0.2</span></div>
+   <div class="page-title"><div><small>WORKSPACE / SYSTEM</small><h1>Параметры</h1></div><span class="status-label">V 0.3</span></div>
    <div class="surface settings-card"><div class="setting-header"><b>Оформление</b><small>Тема приложения</small></div><div class="theme-choice"><button data-theme="dark" class="is-active" type="button">☾ Графит</button><button data-theme="light" type="button">☀ Титан</button></div></div>
    <div class="surface settings-card"><div class="setting-header"><b>Проект</b><small>Сохраняется на этом устройстве автоматически</small></div><button id="download-project" type="button" class="button ghost wide">↓ Скачать проект JSON</button><button id="settings-import" type="button" class="button ghost wide">↑ Открыть проект JSON</button></div>
    <div class="surface settings-card"><div class="setting-header"><b>Точность и ограничения</b></div><p class="small-description">Осесимметричные детали: наружные и внутренние ступени, конусы, глухие и сквозные расточки, кольцевые канавки OD/ID. Все реальные размеры по чертежу вводятся вручную. STEP — твердотельная B-Rep. Винтовая резьба, поперечные отверстия, фрезерные пазы и свободные эскизы пока не реализованы.</p></div>
