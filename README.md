@@ -2,6 +2,13 @@
 
 **Mobile-first offline-first PWA for SINUMERIK 828D operators.** The repository has been repurposed from Button Motion Lab for this dedicated application.
 
+## v0.4 · ShopTurn process planner and X/Z contour editor
+- New independent **ShopTurn** workspace: ordered, editable operation cards for facing, roughing, finishing, centric drilling, internal boring, grooving, threading and parting. Tool T, cutting edge D, feed F and speed S are included; order can be changed.
+- Configurable ShopTurn-inspired program header with **G54 locked** and XA/XI/ZA/ZI/ZB, XRA/XRI/ZRA/ZRI, safety clearance SC and tool-change mode MCS/WCS. Unknown XT/ZT are intentionally left **blank**, never treated as measured zero values.
+- Geometric X/Z contour editor: lines and circular arcs (R), diameter X coordinates, dimensionally consistent SVG visualization, editable nodes and transfer from existing CAD profile. Canvas/CAD origin and machine-workpiece origin remain conceptually distinct.
+- The operation plan autosaves offline and exports machine-*non-executable* TXT/JSON. The CAD project and existing STEP export remain independent; no unverified NC toolpaths or collision guarantees are claimed.
+- Unit checks, build and browser smoke are required before release. Production machining still requires verification of tool geometry, spindle/chuck setup, offsets and simulation on the real SINUMERIK 828D.
+
 ## v0.3 · Premium live X/Z blueprint
 - Interactive, exact **live SVG blueprint** above the editing controls, driven by the same axial model as 3D and STEP. Selected outer step, inner bore, OD/ID groove highlighted with precise Z start/end, length and diameter.
 - Tap any operation to highlight it, or select a region of the blueprint and tap **Edit**. Expandable compact operation groups reduce unnecessary scrolling on mobile.
