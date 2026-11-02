@@ -66,6 +66,26 @@ async function checkSize(w,h){
  if(statusChecks.length<6)throw Error('ShopTurn verification checklist missing');
  await page.click('[data-go="edit"].dock-tab');
  await page.waitForSelector('#editor-stock:not([hidden])');
+ // Overall length must be genuinely editable, drive all CAD geometry and reject invalid cuts.
+ const initialLength=await page.$eval('#stock-length',el=>({tag:el.tagName,value:el.value,disabled:el.disabled,readonly:el.readOnly}));
+ if(initialLength.tag!=='INPUT'||initialLength.disabled||initialLength.readonly||initialLength.value!=='37,00')
+  throw Error('Total length is still read-only at '+w+': '+JSON.stringify(initialLength));
+ await page.$eval('#stock-length',el=>{el.value='52,5';el.dispatchEvent(new Event('change',{bubbles:true}))});
+ await page.waitForFunction(()=>document.querySelector('#stock-length').value==='52,50',{timeout:10000});
+ const updatedLength=await page.evaluate(()=>({
+  length:document.querySelector('#stock-length').value,
+  lastStep:document.querySelector('#steps-list .feature-row:last-child .feature-copy small')?.textContent,
+  summary:document.querySelector('#home-size').textContent
+ }));
+ if(!updatedLength.lastStep?.includes('L 26,50')||!updatedLength.summary.includes('52,50'))
+  throw Error('Total length change did not update last segment and geometry at '+w+': '+JSON.stringify(updatedLength));
+ await page.$eval('#stock-length',el=>{el.value='25';el.dispatchEvent(new Event('change',{bubbles:true}))});
+ const invalidLength=await page.evaluate(()=>({value:document.querySelector('#stock-length').value,warning:document.querySelector('#toast').textContent}));
+ if(invalidLength.value!=='52,50'||!invalidLength.warning.includes('меньше суммы'))
+  throw Error('Invalid overall length was not safely rejected at '+w+': '+JSON.stringify(invalidLength));
+ await page.$eval('#stock-length',el=>{el.value='37';el.dispatchEvent(new Event('change',{bubbles:true}))});
+ await page.waitForFunction(()=>document.querySelector('#stock-length').value==='37,00',{timeout:10000});
+
  const blueprint=await page.evaluate(()=>({
   paths:document.querySelectorAll('#live-blueprint path').length,
   label:document.querySelector('#blueprint-description').textContent,
