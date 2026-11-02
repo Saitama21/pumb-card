@@ -48,7 +48,7 @@ export function drawSection(svg,geometry,part,selected,{grid=false,dimensions=tr
   dim.push('<path d="M'+x0+' '+(yBot+4)+'V'+(yDimension+9)+'M'+x1+' '+(yBot+4)+'V'+(yDimension+9)+'M'+begin+' '+yDimension+'H'+end+'" fill="none" stroke="#667b8f" stroke-width="1"/>');
   dim.push('<path d="M'+x0+' '+yDimension+'l7 -3v6zM'+x1+' '+yDimension+'l-7 -3v6z" fill="#667b8f"/>');
   dim.push('<text x="'+(x0+x1)/2+'" y="'+(yDimension-8)+'" text-anchor="middle" font-size="13" font-weight="700" fill="#28415b">'+length.toFixed(3)+' мм</text>');
-  for(const [edge,r,side] of [[x0,leftR,'left'],[x1,rightR,'right']]){
+  for(const [edge,r,side] of (Math.abs(leftR-rightR)<1e-6?[[x0,leftR,'left']]:[[x0,leftR,'left'],[x1,rightR,'right']])){
    const xDim=edge+(side==='left'?-20:20),startY=Y(r),endY=Y(-r);
    const labelX=xDim+(side==='left'?-9:10);
    dim.push('<path d="M'+xDim+' '+startY+'V'+endY+'" stroke="#667b8f" stroke-width="1.1"/>');
@@ -56,12 +56,12 @@ export function drawSection(svg,geometry,part,selected,{grid=false,dimensions=tr
    dim.push('<text x="'+labelX+'" y="'+cy+'" transform="rotate(-90 '+labelX+' '+cy+')" text-anchor="middle" font-size="13" font-weight="700" fill="#28415b">Ø'+(r*2).toFixed(3)+'</text>');
   }
  }
- markup+='<g font-family="-apple-system,BlinkMacSystemFont,Arial,sans-serif">'+dim.join('')+'</g>';
+ markup+='<g stroke="none" font-family="-apple-system,BlinkMacSystemFont,Arial,sans-serif">'+dim.join('')+'</g>';
  const point=part.points[selected];
  if(point){
   const px=X(point.z-zMin),py=Y(point.x/2);
   markup+='<circle data-selected-point cx="'+px.toFixed(2)+'" cy="'+py.toFixed(2)+'" r="5.2" fill="#ed9c23" stroke="#fff" stroke-width="2.3"/>';
  }
- markup+='<g font-family="-apple-system,BlinkMacSystemFont,Arial,sans-serif" font-size="12" fill="#526f8e"><text x="10" y="22" font-weight="700">X / Z · РАЗРЕЗ</text><text x="'+(W-10)+'" y="22" text-anchor="end">мм · X = Ø</text></g>';
+ markup+='<g font-family="-apple-system,BlinkMacSystemFont,Arial,sans-serif" font-size="12" fill="#526f8e" stroke="none"><text x="10" y="22" font-weight="700">X / Z · РАЗРЕЗ</text><text x="'+(W-10)+'" y="22" text-anchor="end">мм · X = Ø</text></g>';
  svg.innerHTML=markup;
 }
