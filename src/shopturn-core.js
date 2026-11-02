@@ -1,5 +1,6 @@
 /** ShopTurn-inspired OFFLINE process planner. Deliberately NOT an NC postprocessor. */
 import {modelProfile} from './model.js';
+import {validateShopContour,shopContourPath} from './contour-geometry.js';
 export const PLAN_VERSION=1;
 export const OP_TYPES={
  facing:{label:'Торцевание',cycle:'Точение / Торец',fields:[['z','Z торца, мм'],['x','Конечный X Ø, мм']]},
@@ -33,57 +34,16 @@ export function defaultOperation(type,plan){
 export function defaultPlan(model){
  const p=modelProfile(model),h={g54:'G54',xa:round(p.maxD),xi:round(model.bore),za:0,zi:-p.length,zb:-p.length,
  xra:2,xri:0,zra:2,zri:0,sc:2,maxS:2000,xt:null,zt:null,toolChange:'MCS'};
- const plan={version:PLAN_VERSION,header:h,contour:contourFromModel(model),operations:[],modelSignature:JSON.stringify(modelProfile(model).polygon)};
+ const plan={version:PLAN_VERSION,contourName:'CONT_1',header:h,contour:contourFromModel(model),operations:[],modelSignature:JSON.stringify(modelProfile(model).polygon)};
  plan.operations=[defaultOperation('facing',plan),defaultOperation('rough',plan),defaultOperation('finish',plan)];
  return plan;
 }
-export function validateContour(nodes){
- if(!Array.isArray(nodes)||nodes.length<2||nodes.length>160)throw Error('Контур: требуется от 2 до 160 точек');
- for(let i=0;i<nodes.length;i++){
-  const n=nodes[i];if(!n||!finite(n.x)||!finite(n.z)||n.x<0||n.x>10000||Math.abs(n.z)>10000)throw Error('Контур: неверные X/Z в точке '+(i+1));
-  if(n.kind!==(i===0?'start':n.kind)||!['start','line','arcCW','arcCCW'].includes(n.kind)||(i>0&&n.kind==='start'))throw Error('Контур: неверный тип элемента');
-  if(i>0){
-   const prev=nodes[i-1];
-   if(Math.hypot((n.x-prev.x)/2,n.z-prev.z)<1e-7)throw Error('Контур: совпадающие точки '+i+' и '+(i+1));
-   if(n.kind.startsWith('arc')){
-    const chord=Math.hypot((n.x-prev.x)/2,n.z-prev.z);
-    if(!finite(n.radius)||n.radius<=0||n.radius<chord/2-1e-7)throw Error('Контур: радиус дуги меньше половины хорды в точке '+(i+1));
-   }
-  }
- }
- if(nodes[0].kind!=='start')throw Error('Первая точка должна иметь тип «Старт»');
- return nodes;
-}
-/** Path samples are in physically scaled X(radius)/Z plane, NOT encoded CNC G2/G3. */
-export function contourPath(nodes){
- validateContour(nodes);
- const out=[{z:nodes[0].z,r:nodes[0].x/2}];
- for(let i=1;i<nodes.length;i++){
-  const s=nodes[i-1],e=nodes[i];
-  if(e.kind==='line'){out.push({z:e.z,r:e.x/2});continue}
-  const ax=s.z,ay=s.x/2,bx=e.z,by=e.x/2;
-  const dx=bx-ax,dy=by-ay,chord=Math.hypot(dx,dy),radius=e.radius;
-  const mx=(ax+bx)/2,my=(ay+by)/2,h=Math.sqrt(Math.max(0,radius*radius-chord*chord/4));
-  const nx=-dy/chord,ny=dx/chord,sign=e.kind==='arcCCW'?1:-1;
-  let chosen=null;
-  for(const mult of [1,-1]){
-   const cx=mx+nx*h*mult,cy=my+ny*h*mult;
-   const a0=Math.atan2(ay-cy,ax-cx),a1=Math.atan2(by-cy,bx-cx);
-   const delta=sign>0?((a1-a0+Math.PI*4)%(Math.PI*2)):-((a0-a1+Math.PI*4)%(Math.PI*2));
-   if(Math.abs(delta)<=Math.PI+1e-6){chosen={cx,cy,a0,delta};break}
-  }
-  if(!chosen)throw Error('Не удалось рассчитать дугу');
-  const count=Math.max(8,Math.ceil(Math.abs(chosen.delta)/Math.PI*48));
-  for(let j=1;j<=count;j++){
-   const a=chosen.a0+chosen.delta*j/count;
-   out.push({z:round(chosen.cx+radius*Math.cos(a)),r:round(chosen.cy+radius*Math.sin(a))});
-  }
- }
- return out;
-}
+export const validateContour=nodes=>validateShopContour(nodes);
+export const contourPath=nodes=>shopContourPath(nodes);
 export function validatePlan(plan){
  if(!plan||plan.version!==PLAN_VERSION||!plan.header||!Array.isArray(plan.operations)||plan.operations.length>80)throw Error('Некорректная карта обработки');
  const h=plan.header;
+ if(!/^[A-Za-z][A-Za-z0-9_]{0,31}$/.test(plan.contourName||'CONT_1'))throw Error('Название контура: буквы, цифры и _');
  if(h.g54!=='G54')throw Error('На этой конфигурации используем G54');
  for(const k of NUMERIC_HEADER)if(!finite(h[k])||Math.abs(h[k])>10000)throw Error('Неверное поле заголовка: '+k);
  if(h.xa<=0||h.xi<0||h.xi>=h.xa||h.zi>=h.za||h.zb<h.zi||h.zb>h.za||h.maxS<=0||h.sc<0||h.xra<0||h.zra<0)throw Error('Противоречивые размеры заготовки или отводов');
@@ -104,11 +64,21 @@ export function validatePlan(plan){
  return plan;
 }
 export function sanitizePlan(raw){
- const h={...raw?.header},p={version:raw?.version,header:h,modelSignature:String(raw?.modelSignature||''),operations:[],contour:[]};
+ const h={...raw?.header},p={version:raw?.version,contourName:String(raw?.contourName||'CONT_1').slice(0,32),header:h,modelSignature:String(raw?.modelSignature||''),operations:[],contour:[]};
  for(const k of NUMERIC_HEADER)h[k]=Number(h[k]);
  for(const k of ['xt','zt'])h[k]=h[k]===''||h[k]===null||h[k]===undefined?null:Number(h[k]);
  h.g54=String(h.g54||'');h.toolChange=String(h.toolChange||'');
- p.contour=(raw?.contour||[]).map(n=>({id:String(n.id||uid()),kind:String(n.kind),x:Number(n.x),z:Number(n.z),...(n.kind?.startsWith('arc')?{radius:Number(n.radius)}:{})}));
+ p.contour=(raw?.contour||[]).map(n=>({
+  id:String(n.id||uid()),kind:String(n.kind),x:Number(n.x),z:Number(n.z),
+  ...(n.mode?{mode:String(n.mode)}:{}),
+  ...(n.dimX?{dimX:String(n.dimX)}:{}),...(n.dimZ?{dimZ:String(n.dimZ)}:{}),
+  ...(n.arcMode?{arcMode:String(n.arcMode)}:{}),
+  ...(n.kind?.startsWith('arc')&&n.radius!==undefined?{radius:Number(n.radius)}:{}),
+  ...(n.centerI!==undefined?{centerI:Number(n.centerI)}:{}),
+  ...(n.centerK!==undefined?{centerK:Number(n.centerK)}:{}),
+  ...(n.transition?{transition:{type:String(n.transition.type),value:Number(n.transition.value)}}:{}),
+  ...(n.extra?{extra:String(n.extra)}:{})
+ }));
  p.operations=(raw?.operations||[]).map(o=>{
   const item={id:String(o.id||uid()),type:String(o.type),tool:String(o.tool||''),edge:Number(o.edge),feed:Number(o.feed),speed:Number(o.speed),area:String(o.area)};
   for(const [key] of OP_TYPES[item.type]?.fields||[])item[key]=Number(o[key]);
