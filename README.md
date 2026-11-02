@@ -1,4 +1,24 @@
-# CNC Toolbox Pro · CAD Constructor
+# XZFORM 3D · CAD Constructor
+
+**Offline-first engineering CAD PWA — from typed X/Z coordinates to a dimensional 2D section, interactive 3D solid and genuine STEP.**
+
+## v1.0.0-beta.1 · Reference-style CAD workspace
+- Approved engineering visual language: white/slate surfaces, precise steel-blue actions, ribbon toolbar, project sidebar, coordinate table, axial holes and simultaneous 2D/3D desktop workspaces.
+- The iPhone layout has dedicated full-screen workspace views with an independent five-tab dock fixed at \`bottom:2px;left:50%;transform:translateX(-50%);width:87%;height:68px\`.
+- **One geometric source:** typed X (diameter) / Z (axial) points, with supported straight and tapered segments, shoulders, connected holes and flat-bottom blind holes. Incremental editing through add/insert/duplicate/delete and undo/redo.
+- 2D section, dimensions, Three.js preview and Open CASCADE B-Rep STEP consume the same validated polygon. No arbitrary mock mesh is exported as STEP.
+- Validation blocks broken Z direction, identical nodes, voids not connected to a face, separate blind bores and inner/outer wall collisions. Some advanced solids (flats, true circular arc fillets, helical threads) are not implemented in this beta.
+- JSON import/export and persistent local autosave with an isolated key; previous CAD/ShopTurn saved projects are not deleted. Simple old step-based CAD projects can be migrated safely, while unsupported legacy features fail explicitly rather than disappearing.
+- No cutting tool selection, feeds/speeds or unverified executable NC program. This is geometry CAD software, not a collision checking CNC postprocessor.
+- Test commands: \`npm run check\`, \`npm run build\`, \`npm run smoke\`. GitHub Actions runs the same suite before publishing to GitHub Pages.
+
+**Project URL:** https://github.com/Saitama21/pumb-card  
+**Released name:** XZFORM 3D (the GitHub repository stays named pumb-card).
+
+---
+
+## Archived implementation notes (v0.x)
+
 
 **Mobile-first offline-first PWA for SINUMERIK 828D operators.** The repository has been repurposed from Button Motion Lab for this dedicated application.
 
