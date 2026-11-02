@@ -68,9 +68,10 @@
    <section id="editor-stock" class="surface form-card">
     <div class="card-head"><h2>Параметры детали</h2><span class="card-chip">ММ / Ø</span></div>
     <label class="field"><span>Название</span><input id="part-name" type="text" maxlength="70" autocomplete="off" placeholder="Например: Втулка Ø38"></label>
-    <div class="field-row"><label class="field"><span>Базовое сквозное отверстие Ø</span><input id="part-bore" type="text" inputmode="decimal" autocomplete="off" aria-describedby="bore-note"></label><label class="field"><span>Общая длина, мм</span><output class="read-only" id="stock-length">37,00</output></label></div>
+    <div class="field-row"><label class="field"><span>Базовое сквозное отверстие Ø</span><input id="part-bore" type="text" inputmode="decimal" autocomplete="off" aria-describedby="bore-note"></label><label class="field"><span>Общая длина, мм</span><input id="stock-length" type="text" inputmode="decimal" autocomplete="off" aria-describedby="length-note" placeholder="Введите длину, мм"></label></div>
     <p class="form-note" id="bore-note">0 — без сквозного отверстия. Глухие отверстия и ступенчатые расточки задавай во вкладке «Операции» по Z.</p>
-    <div class="section-toolbar"><strong>Наружный контур</strong><button class="mini-add" id="add-step" type="button">＋ Ступень</button><button class="mini-add" id="add-taper" type="button">＋ Конус</button></div>
+    <p class="form-note" id="length-note">Общую длину можно изменить вручную. При этом изменяется длина последней ступени, а размеры предыдущих ступеней и положение канавок сохраняются. Если геометрия станет некорректной, изменение не сохранится.</p>
+     <div class="section-toolbar"><strong>Наружный контур</strong><button class="mini-add" id="add-step" type="button">＋ Ступень</button><button class="mini-add" id="add-taper" type="button">＋ Конус</button></div>
     <div class="feature-list" id="steps-list"></div>
     <button class="button primary wide" id="stock-next" type="button">Далее · операции <span>→</span></button>
    </section>
