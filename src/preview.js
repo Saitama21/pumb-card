@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {buildRevolvedGeometry} from './xzform-mesh.js';
 let renderer,scene,camera,controls,mesh,frame=0,canvasEl;
 let length=37,maxD=38;
 function prepare(canvas){
@@ -30,11 +31,6 @@ function prepare(canvas){
  const animate=()=>{frame=requestAnimationFrame(animate);if(canvas.closest('[hidden]'))return;controls.update();renderer.render(scene,camera)};
  animate();
 }
-function buildGeometry(profile){
- const list=profile.polygon.map(([radius,z])=>new THREE.Vector2(radius,z));
- if(!list[0].equals(list.at(-1)))list.push(list[0].clone());
- return new THREE.LatheGeometry(list,96,0,Math.PI*2);
-}
 export function updatePreview(canvas,profile){
  prepare(canvas);
  length=profile.length;maxD=profile.maxD;
@@ -43,9 +39,9 @@ export function updatePreview(canvas,profile){
   for(const child of mesh.children){child.geometry.dispose();child.material.dispose();}
   mesh.geometry.dispose();mesh.material.dispose();
  }
- const geometry=buildGeometry(profile);
+ const geometry=buildRevolvedGeometry(profile.polygon);
  const material=new THREE.MeshStandardMaterial({
-  color:0xb2c3d0,metalness:.26,roughness:.46,side:THREE.DoubleSide
+  color:0xb2c3d0,metalness:.26,roughness:.46,side:THREE.FrontSide
  });
  mesh=new THREE.Mesh(geometry,material);
  // Turning geometry is axial Y internally; lay it horizontally for a
