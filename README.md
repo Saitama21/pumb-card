@@ -9,6 +9,13 @@
 - The operation plan autosaves offline and exports machine-*non-executable* TXT/JSON. The CAD project and existing STEP export remain independent; no unverified NC toolpaths or collision guarantees are claimed.
 - Unit checks, build and browser smoke are required before release. Production machining still requires verification of tool geometry, spindle/chuck setup, offsets and simulation on the real SINUMERIK 828D.
 
+## v0.5.1 · Editable overall part length
+- "Общая длина, мм" in the CAD parameters form is now a real decimal input, not a derived read-only output with an apparent fixed value of 37 mm.
+- Changing the total length resizes the **last axial step**; previous axial dimensions and all feature Z locations remain unchanged. A single-step new part can be resized to any valid length without editing a feature.
+- Rejects any requested length that would make the last step non-positive or clip existing grooves/inner bores; existing model and STEP data stay intact on failure.
+- All displays are updated through the validated CAD model (SVG blueprint, 3D, STEP, home summary); ShopTurn continues detecting CAD geometry changes.
+- Verified through unit regression and responsive browser smoke across multiple viewports.
+
 ## v0.5 · SINUMERIK-like contour geometry workflow
 - Refactored contour screen to mirror Siemens SINUMERIK Turning Operating Manual, §8.3.2–8.3.6, pp.352–365: contour name, start X/Z, sequential symbolic element list, sketch graphic, softkeys for line Z, line X, line ZX and circle/arc, element mask and "Accept".
 - Separate axis masks with absolute/incremental endpoint entry, radius-defined R arcs or center I/K input, clockwise / counterclockwise arcs, line-to-line fillet R and chamfer FS **in the actual 2D geometry**.

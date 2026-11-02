@@ -6,6 +6,20 @@ const positive=x=>Number.isFinite(x)&&x>0&&x<=10000;
 const nonnegative=x=>Number.isFinite(x)&&x>=0&&x<=10000;
 export const round6=x=>Math.round(x*1e6)/1e6;
 export const totalLength=m=>round6(m.steps.reduce((a,s)=>a+s.length,0));
+/** Resize the total Z span by changing only the terminal axial step.
+ * Keep all preceding step dimensions and feature coordinates; reject any
+ * resulting geometric conflict instead of silently moving machining features. */
+export function resizeTotalLength(model,length){
+ if(!positive(length)||length<0.001)throw Error('Общая длина должна быть от 0,001 до 10 000 мм');
+ if(!Array.isArray(model?.steps)||!model.steps.length)throw Error('Сначала создай ступень');
+ const previous=round6(model.steps.slice(0,-1).reduce((sum,step)=>sum+step.length,0));
+ const last=round6(length-previous);
+ if(last<0.001)throw Error('Общая длина меньше суммы предыдущих ступеней ('+previous+' мм). Измени размеры ступеней.');
+ const steps=model.steps.map((step,i)=>i===model.steps.length-1?{...step,length:last}:step);
+ const resized={...model,steps};
+ validateModel(resized);
+ return resized;
+}
 export const newId=()=>globalThis.crypto?.randomUUID?.()??('f'+Date.now().toString(36)+Math.random().toString(36).slice(2,7));
 export const exampleModel=()=>({
  version:MODEL_VERSION,name:'Втулка Ø38',bore:24,

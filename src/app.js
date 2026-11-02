@@ -1,4 +1,4 @@
-import {exampleModel,newId,modelProfile,sanitizeModel,totalLength,outsideAt} from './model.js';
+import {exampleModel,newId,modelProfile,sanitizeModel,totalLength,resizeTotalLength,outsideAt} from './model.js';
 import {initShopTurn,refreshShopTurn} from './shopturn.js';
 import {updatePreview,drawProfile,fitCamera,zoom} from './preview.js';
 import {drawLiveBlueprint,selectionDetails,featureBounds,toDisplayZ,fromDisplayZ,format} from './live-blueprint.js';
@@ -80,7 +80,7 @@ function buttonFeature(title,detail,index,kind){
 }
 function render(){
  $('part-name').value=model.name;$('part-bore').value=fmt(model.bore);
- $('stock-length').textContent=fmt(totalLength(model))+' мм';
+ $('stock-length').value=fmt(totalLength(model));
  $('home-name').textContent=model.name;
  $('home-size').textContent='⌀'+fmt(profile.maxD)+' × '+fmt(profile.length)+' мм · '+model.steps.length+' ступеней';
  $('steps-list').replaceChildren(...model.steps.map((s,i)=>buttonFeature(s.type==='taper'?'Конус':'Ступень',
@@ -202,8 +202,17 @@ function saveEditor(event){
  }catch(error){$('feature-error').textContent=error.message}
 }
 function editBase(){
- const next=clone(model);next.name=$('part-name').value.trim()||'Деталь';next.bore=num($('part-bore').value);
- try{applyModel(next);return true}catch(error){toast(error.message);render();return false}
+ let next=clone(model);
+ next.name=$('part-name').value.trim()||'Деталь';
+ next.bore=num($('part-bore').value);
+ try{
+  const rawLength=$('stock-length').value.trim();
+  if(!rawLength)throw Error('Укажи общую длину детали в миллиметрах');
+  const length=num(rawLength);
+  if(!Number.isFinite(length))throw Error('Общая длина должна быть числом');
+  if(Math.abs(length-totalLength(next))>1e-7)next=resizeTotalLength(next,length);
+  applyModel(next);return true;
+ }catch(error){toast(error.message);render();return false}
 }
 function downloadBlob(blob,filename){
  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();
@@ -272,7 +281,7 @@ function bind(){
  $('settings-import').addEventListener('click',()=>$('project-file').click());
  $('project-file').addEventListener('change',async event=>{await importProject(event.target.files?.[0]);event.target.value=''});
  $('download-project').addEventListener('click',exportProject);
- $('part-name').addEventListener('change',editBase);$('part-bore').addEventListener('change',editBase);
+ $('part-name').addEventListener('change',editBase);$('part-bore').addEventListener('change',editBase);$('stock-length').addEventListener('change',editBase);
  $('add-step').addEventListener('click',()=>openEditor('step'));$('add-taper').addEventListener('click',()=>openEditor('taper'));
  $('add-od-groove').addEventListener('click',()=>openEditor('grooves'));$('add-id-groove').addEventListener('click',()=>openEditor('innerGrooves'));
  $('add-id-section').addEventListener('click',()=>openEditor('innerSections'));$('add-id-taper').addEventListener('click',()=>openEditor('innerTaper'));
