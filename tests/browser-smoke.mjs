@@ -35,7 +35,7 @@ async function viewportCheck(w,h){
  if(w<=760){
   const ribbon=await page.evaluate(()=>{
    const bar=document.querySelector('.ribbon');
-   const buttons=[...bar.querySelectorAll('button')].filter(el=>getComputedStyle(el).display!=='none');
+   const buttons=[...bar.querySelectorAll('button')].filter(el=>el.getClientRects().length>0&&getComputedStyle(el).visibility!=='hidden');
    return {visible:buttons.length,width:bar.clientWidth,scroll:bar.scrollWidth,
     clipped:buttons.filter(el=>el.getBoundingClientRect().right>bar.getBoundingClientRect().right+2).map(el=>el.textContent.trim())};
   });
