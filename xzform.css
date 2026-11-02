@@ -78,3 +78,30 @@
   paint-order: normal;
   fill-opacity: 1;
 }
+
+
+/* Geometric features, not cutting tools: paired planar wrench flats. */
+.flat-panel{display:none;}
+.flat-note,.flat-hint{font-size:12px;line-height:1.45;color:var(--muted);padding:11px 13px;margin:0;}
+.flat-hint{border-top:1px solid var(--edge-soft);}
+.flat-table{width:100%;table-layout:fixed;border-collapse:collapse;font-variant-numeric:tabular-nums;}
+.flat-table th{position:sticky;top:0;background:var(--panel-2);z-index:1;color:var(--ink);font-size:11px;}
+.flat-table th,.flat-table td{border-bottom:1px solid var(--edge-soft);padding:7px 3px;text-align:center;}
+.flat-table th:last-child{width:34px;}
+.flat-table input{width:100%;height:35px;min-width:0;padding:3px;background:transparent;border:1px solid var(--edge-soft);border-radius:8px;text-align:center;color:var(--ink);font:600 12px ui-monospace,SFMono-Regular,Consolas,monospace;}
+.flat-table input:focus{outline:2px solid var(--blue);}
+.flat-delete{color:var(--red);font-size:20px;padding:5px;}
+.workspace[data-view="flats"] .editor-column{grid-template-rows:minmax(0,1fr);}
+.workspace[data-view="flats"] .editor-column .contour-panel,
+.workspace[data-view="flats"] .editor-column .holes-panel{display:none;}
+.workspace[data-view="flats"] .editor-column .flat-panel{display:flex;}
+@media(max-width:760px){
+ .workspace[data-view="flats"]{height:auto;min-height:0;}
+ .workspace[data-view="flats"] .editor-column .flat-panel{height:auto;min-height:0;}
+ .workspace[data-view="flats"] .flat-panel .table-scroll{
+  flex:0 1 auto;height:auto;max-height:clamp(120px,calc(100dvh - 470px),460px);
+  min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
+ }
+ .flat-table input{font-size:14px;height:41px;}
+ .flat-note,.flat-hint{font-size:11px;}
+}
