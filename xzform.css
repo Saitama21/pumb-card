@@ -10,3 +10,37 @@
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 
 @media(min-width:761px){.workspace[data-view=export],.workspace[data-view=settings]{grid-template-columns:175px minmax(0,1fr)}.workspace[data-view=export] .editor-column,.workspace[data-view=export] .stage-column,.workspace[data-view=settings] .editor-column,.workspace[data-view=settings] .stage-column{display:none}.workspace[data-view=export] .export-panel,.workspace[data-view=settings] .settings-panel{display:flex}}@media(min-width:761px) and (max-width:980px){.workspace[data-view=export],.workspace[data-view=settings]{grid-template-columns:minmax(0,1fr)}}
+
+/*
+ * Mobile CAD workspace: coordinate and hole tables are content-sized, not a
+ * stretched viewport pane. A long point list scrolls inside its own card.
+ * Drawing and WebGL tabs deliberately retain their full-height workspaces.
+ * The independent Safari dock is never used for positioning these cards.
+ */
+@media (max-width:760px) {
+  .workspace[data-view="contour"],
+  .workspace[data-view="holes"] {
+    height: auto;
+    min-height: 0;
+  }
+  .workspace[data-view="contour"] .contour-panel,
+  .workspace[data-view="holes"] .holes-panel {
+    height: auto;
+    min-height: 0;
+  }
+  .workspace[data-view="contour"] .contour-panel .table-scroll,
+  .workspace[data-view="holes"] .holes-panel .table-scroll {
+    flex: 0 1 auto;
+    height: auto;
+    min-height: 0;
+    max-height: clamp(120px, calc(100dvh - 400px), 510px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .workspace[data-view="contour"] .contour-panel .panel-bottom,
+  .workspace[data-view="holes"] .holes-panel .panel-bottom {
+    flex-shrink: 0;
+  }
+}
