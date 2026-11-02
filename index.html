@@ -1,139 +1,92 @@
 <!doctype html>
 <html lang="ru">
 <head>
- <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
- <meta name="theme-color" content="#07121e">
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+ <meta name="theme-color" content="#ecf1f7">
  <meta name="apple-mobile-web-app-capable" content="yes">
- <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
- <meta name="description" content="CNC Toolbox Pro: параметрический конструктор токарных деталей, офлайн 3D, настоящий STEP для eDrawings.">
+ <meta name="apple-mobile-web-app-status-bar-style" content="default">
+ <meta name="description" content="XZFORM 3D — координаты X/Z, инженерный чертёж, 3D-модель и STEP. Работает офлайн.">
  <link rel="manifest" href="./manifest.webmanifest">
- <link rel="icon" type="image/svg+xml" href="./icon.svg">
- <link rel="stylesheet" href="./styles.css">
- <link rel="stylesheet" href="./shopturn.css">
- <title>CNC Toolbox Pro · 3D-конструктор</title>
+ <link rel="icon" href="./icon.svg" type="image/svg+xml">
+ <link rel="stylesheet" href="./xzform.css">
+ <title>XZFORM 3D · Конструктор деталей (X/Z)</title>
 </head>
 <body>
- <main class="app-shell" id="app-shell">
-  <header class="app-header">
-   <div class="brand"><div class="brand-icon" aria-hidden="true">⌖</div><div><strong>CNC Toolbox <em>Pro</em></strong><small>SINUMERIK 828D · CAD WORKSPACE</small></div></div>
-   <div class="header-right"><span class="header-badge">OFFLINE</span><button id="theme-toggle" class="icon-button" aria-label="Сменить тему" type="button">◐</button></div>
-  </header>
-
-  <section class="page home-page" id="page-home">
-   <div class="section-kicker">3D / PARAMETRIC / ENGINEERING</div>
-   <div class="hero-card">
-    <div class="hero-glow"></div><div class="hero-copy">
-     <span class="section-kicker">CNC TOOLBOX / CAD</span>
-     <h1>3D-конструктор<br><span>токарных деталей</span></h1>
-     <p>Задаёшь геометрию цифрами. Проверяешь модель. Получаешь настоящий STEP для eDrawings.</p>
-    </div>
-    <svg class="hero-figure" viewBox="0 0 420 200" aria-hidden="true">
-      <defs><linearGradient id="metal" x2="0.85" y2="1"><stop stop-color="#b9dcfa"/><stop offset=".31" stop-color="#3a617e"/><stop offset=".65" stop-color="#c4efff"/><stop offset="1" stop-color="#2a4e69"/></linearGradient></defs>
-      <g fill="none" stroke="#075a99" stroke-width="0.7" opacity=".38"><path d="M0 30H420M0 65H420M0 100H420M0 135H420M0 170H420"/><path d="M30 0V200M80 0V200M130 0V200M180 0V200M230 0V200M280 0V200M330 0V200M380 0V200"/></g>
-      <path d="M65 100L125 55L206 55L236 75L302 75L360 104L308 145L245 145L215 164L120 164Z" fill="url(#metal)" stroke="#a4defc" stroke-width="1.9"/>
-      <path d="M125 55V164M206 55L206 164M236 75L245 145M302 75L308 145" stroke="#d5f3ff" opacity=".8"/>
-      <ellipse cx="360" cy="104" rx="23" ry="42" fill="#10334f" stroke="#c3edff" stroke-width="2"/>
-      <ellipse cx="360" cy="104" rx="12" ry="23" fill="#06111c" stroke="#79c9f9" stroke-width="2"/>
-    </svg>
-    <div class="hero-actions"><button id="new-project" class="button primary" type="button"><span class="btn-symbol">＋</span> Новая деталь</button><button id="load-project" class="button ghost" type="button">Открыть JSON</button></div>
-   </div>
-   <div class="home-stats"><div><strong>01</strong><span>Заготовка</span></div><div><strong>02</strong><span>Операции</span></div><div><strong>03</strong><span>3D + STEP</span></div></div>
-   <button class="surface recent-project" id="continue-project" type="button"><span class="recent-icon">◈</span><span><strong id="home-name">Втулка Ø38</strong><small id="home-size">Ø38 × 37 мм · 4 ступени</small></span><span class="arrow">↗</span></button>
-   <p class="fine-print">Ручной ввод размеров · Без ИИ · Геометрия B-Rep через Open CASCADE</p>
-  </section>
-
-  <section class="page edit-page" id="page-edit" hidden>
-   <div class="page-title"><button class="back-button" data-go="home" aria-label="Назад" type="button">‹</button><div><small>PARAMETRIC / OPERATIONS</small><h1>Конструктор детали</h1></div><button class="tiny-action" id="reset-model" type="button">Сброс</button></div>
-   <div class="stepper"><button type="button" class="step current" data-step="stock"><b>1</b><span>Заготовка</span></button><span class="step-join"></span><button type="button" class="step" data-step="features"><b>2</b><span>Операции</span></button><span class="step-join"></span><button type="button" class="step" data-go="preview"><b>3</b><span>Модель</span></button></div>
-   <section class="blueprint-card surface" id="blueprint-card" aria-label="Живой профиль токарной детали">
-    <div class="blueprint-top">
-     <div><small class="blueprint-eyebrow">ENGINEERING / X–Z</small><strong>Профиль детали</strong></div>
-     <span class="blueprint-live"><span class="pulse-dot"></span> LIVE</span>
-    </div>
-    <svg id="live-blueprint" class="live-blueprint" viewBox="0 0 480 240" role="img" aria-label="Интерактивный контур в разрезе с размерами"></svg>
-    <div class="blueprint-bottom">
-     <div class="blueprint-selected"><small>Выбранный элемент</small><b id="blueprint-description">Нажми на участок или выбери операцию</b></div>
-     <button type="button" id="blueprint-edit" class="mini-add" hidden>Изменить ↗</button>
-    </div>
-    <div class="blueprint-controls">
-     <div class="origin-control" role="group" aria-label="Откуда показывать координату Z">
-      <button type="button" data-origin="left" class="is-active" aria-pressed="true">Z0 слева</button>
-      <button type="button" data-origin="right" aria-pressed="false">Z0 справа</button>
-     </div>
-     <button type="button" class="mini-add blueprint-open3d" id="blueprint-open3d">⬡ Открыть 3D</button>
-    </div>
-    <p class="blueprint-note">Координаты конструктора — от выбранного торца. Это не координаты станка G54.</p>
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" class="svg-library">
+ <symbol id="ic-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+ <symbol id="ic-file" viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm9 0v6h5M12 13v7M8.5 16.5h7"/></symbol>
+ <symbol id="ic-folder" viewBox="0 0 24 24"><path d="M2.5 7V5h7l2 2H22v12H2.5z"/></symbol>
+ <symbol id="ic-save" viewBox="0 0 24 24"><path d="M4 3h14l3 3v15H3V3zm3 0v7h10V3M6 21v-8h12v8"/></symbol>
+ <symbol id="ic-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V4H5a2 2 0 0 0-2 2v10h5"/></symbol>
+ <symbol id="ic-trash" viewBox="0 0 24 24"><path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7"/></symbol>
+ <symbol id="ic-contour" viewBox="0 0 24 24"><path d="M3 19 8 8l6 7 7-11"/><circle cx="3" cy="19" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="14" cy="15" r="1.5"/><circle cx="21" cy="4" r="1.5"/></symbol>
+ <symbol id="ic-cube" viewBox="0 0 24 24"><path d="m12 2 9 5v10l-9 5-9-5V7zM3 7l9 5 9-5M12 12v10"/></symbol>
+ <symbol id="ic-hole" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/><path d="M12 1v5M12 18v5M1 12h5M18 12h5"/></symbol>
+ <symbol id="ic-view" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 12h16M12 4v16"/></symbol>
+ <symbol id="ic-section" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM6 18 18 6M3 12l9-9M12 21l9-9"/></symbol>
+ <symbol id="ic-ruler" viewBox="0 0 24 24"><path d="M3 7h18v10H3zM7 7v5M11 7v3M15 7v5M19 7v3"/></symbol>
+ <symbol id="ic-grid" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 9h16M4 15h16M9 4v16M15 4v16"/></symbol>
+ <symbol id="ic-magnet" viewBox="0 0 24 24"><path d="M4 4v10a8 8 0 0 0 16 0V4h-5v10a3 3 0 0 1-6 0V4zM4 9h5M15 9h5"/></symbol>
+ <symbol id="ic-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m7 12 3.5 3.5L17 8"/></symbol>
+ <symbol id="ic-export" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></symbol>
+ <symbol id="ic-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M10 2h4l.5 3 2 1 2.5-1.5 3 3-1.5 2.5 1 2-.5 2-2.5.5-1 2 1.5 2.5-3 3-2.5-1.5-2 1L10 22H7l-.5-3-2-1L2 19l-2-3 1.5-2.5-1-2 1-2L.5 7l3-3L6 5.5l2-1L8.5 2z" transform="translate(1,0) scale(.9)"/></symbol>
+ <symbol id="ic-zoom" viewBox="0 0 24 24"><circle cx="10" cy="10" r="7"/><path d="m15 15 7 7M10 6v8M6 10h8"/></symbol>
+ <symbol id="ic-undo" viewBox="0 0 24 24"><path d="M9 7 4 12l5 5M4 12h11a5 5 0 0 1 0 10"/></symbol>
+ <symbol id="ic-redo" viewBox="0 0 24 24"><path d="m15 7 5 5-5 5m5-5H9a5 5 0 0 0 0 10"/></symbol>
+</svg>
+<main class="app-shell">
+ <header class="app-header">
+  <div class="brand"><span class="brand-mark"><svg viewBox="0 0 24 24"><use href="#ic-cube"/></svg></span><strong>XZFORM <em>3D</em></strong><span class="brand-subtitle">Конструктор деталей (X/Z)</span></div>
+  <div class="header-controls"><span class="offline-indicator" id="offline-status">● Офлайн (PWA)</span><button class="small-icon" id="theme-toggle" title="Сменить тему" aria-label="Сменить тему">◐</button><button class="small-icon" id="settings-top" title="Настройки" aria-label="Настройки"><svg><use href="#ic-settings"/></svg></button></div>
+ </header>
+ <div class="menu-bar" role="tablist" aria-label="Разделы"><button class="selected" data-view="contour">Главная</button><button data-view="drawing">Вид</button><button data-view="model">Модель</button><button data-view="export">Экспорт</button></div>
+ <section class="ribbon" aria-label="Инструменты проекта">
+  <div class="ribbon-group"><button data-action="new"><svg><use href="#ic-file"/></svg><span>Новая деталь</span></button><button data-action="open"><svg><use href="#ic-folder"/></svg><span>Открыть</span></button><button data-action="save"><svg><use href="#ic-save"/></svg><span>Сохранить</span></button></div>
+  <div class="ribbon-group"><button data-action="add"><svg><use href="#ic-plus"/></svg><span>Добавить точку</span></button><button data-action="duplicate"><svg><use href="#ic-copy"/></svg><span>Дублировать</span></button><button data-action="delete" class="danger"><svg><use href="#ic-trash"/></svg><span>Удалить</span></button></div>
+  <div class="ribbon-group"><button data-view="drawing" class="selected"><svg><use href="#ic-view"/></svg><span>2D Чертёж</span></button><button data-view="model"><svg><use href="#ic-cube"/></svg><span>3D Модель</span></button><button id="toggle-section"><svg><use href="#ic-section"/></svg><span>Разрез</span></button><button id="toggle-grid"><svg><use href="#ic-grid"/></svg><span>Сетка</span></button><button id="toggle-dims" class="selected"><svg><use href="#ic-ruler"/></svg><span>Размеры</span></button></div>
+  <div class="ribbon-group"><button data-action="validate"><svg><use href="#ic-check"/></svg><span>Проверка</span></button><button data-action="export-step" class="ribbon-export"><svg><use href="#ic-export"/></svg><span>Экспорт STEP</span></button></div>
+ </section>
+ <div class="workspace" id="workspace" data-view="contour">
+  <aside class="sidebar">
+   <div class="sidebar-title"><svg><use href="#ic-folder"/></svg> Проект</div>
+   <button data-view="contour" class="active"><svg><use href="#ic-contour"/></svg>Контур (X/Z)</button>
+   <button data-view="holes"><svg><use href="#ic-hole"/></svg>Отверстия</button>
+   <button data-view="drawing"><svg><use href="#ic-view"/></svg>Чертёж 2D</button>
+   <button data-view="model"><svg><use href="#ic-cube"/></svg>3D-модель</button>
+   <button data-view="export"><svg><use href="#ic-export"/></svg>Экспорт</button>
+   <button data-view="settings"><svg><use href="#ic-settings"/></svg>Настройки</button>
+   <div class="project-tile"><div class="mini-part">◉ ━━━━━◯</div><strong id="project-name-sidebar">ДКК-007</strong><small id="project-material-sidebar">AISI 304</small><button id="rename-project" aria-label="Изменить проект">✎</button></div>
+  </aside>
+  <div class="editor-column">
+   <section class="panel contour-panel">
+    <div class="panel-header"><h2><svg><use href="#ic-contour"/></svg> Контур детали <span>(точки X / Z)</span></h2><div class="panel-actions"><button data-action="undo" title="Отменить" aria-label="Отменить"><svg><use href="#ic-undo"/></svg></button><button data-action="redo" title="Повторить" aria-label="Повторить"><svg><use href="#ic-redo"/></svg></button></div></div>
+    <div class="table-scroll"><table class="coord-table"><thead><tr><th>№</th><th>Тип</th><th>X (Ø, мм)</th><th>Z (мм)</th><th>Действие</th></tr></thead><tbody id="points-body"></tbody></table></div>
+    <div class="panel-bottom"><button class="primary" data-action="add"><svg><use href="#ic-plus"/></svg> Добавить точку</button><button data-action="insert">Вставить</button><button data-action="duplicate">Дублировать</button><button data-action="delete" class="text-danger">Удалить</button></div>
    </section>
-   <section id="editor-stock" class="surface form-card">
-    <div class="card-head"><h2>Параметры детали</h2><span class="card-chip">ММ / Ø</span></div>
-    <label class="field"><span>Название</span><input id="part-name" type="text" maxlength="70" autocomplete="off" placeholder="Например: Втулка Ø38"></label>
-    <div class="field-row"><label class="field"><span>Базовое сквозное отверстие Ø</span><input id="part-bore" type="text" inputmode="decimal" autocomplete="off" aria-describedby="bore-note"></label><label class="field"><span>Общая длина, мм</span><input id="stock-length" type="text" inputmode="decimal" autocomplete="off" aria-describedby="length-note" placeholder="Введите длину, мм"></label></div>
-    <p class="form-note" id="bore-note">0 — без сквозного отверстия. Глухие отверстия и ступенчатые расточки задавай во вкладке «Операции» по Z.</p>
-    <p class="form-note" id="length-note">Общую длину можно изменить вручную. При этом изменяется длина последней ступени, а размеры предыдущих ступеней и положение канавок сохраняются. Если геометрия станет некорректной, изменение не сохранится.</p>
-     <div class="section-toolbar"><strong>Наружный контур</strong><button class="mini-add" id="add-step" type="button">＋ Ступень</button><button class="mini-add" id="add-taper" type="button">＋ Конус</button></div>
-    <div class="feature-list" id="steps-list"></div>
-    <button class="button primary wide" id="stock-next" type="button">Далее · операции <span>→</span></button>
+   <section class="panel holes-panel">
+    <div class="panel-header"><h2><svg><use href="#ic-hole"/></svg> Отверстия</h2><span class="panel-hint">По оси Z · мм</span></div>
+    <div class="hole-note">Диаметр и границы внутреннего канала, без выбора сверла.</div>
+    <div class="table-scroll"><table class="hole-table"><thead><tr><th>№</th><th>Ø (мм)</th><th>Z нач.</th><th>Z кон.</th><th></th></tr></thead><tbody id="holes-body"></tbody></table></div>
+    <div class="panel-bottom"><button data-action="add-hole"><svg><use href="#ic-plus"/></svg> Добавить отверстие</button><span class="hint-bore">Сквозное / глухое — по границам Z</span></div>
    </section>
-   <section id="editor-features" class="surface form-card" hidden>
-    <div class="card-head"><h2>Дерево операций</h2><span class="card-chip">X / Z · ММ</span></div>
-    <p class="form-note">Выбери элемент, чтобы увидеть его на чертеже. Диаметры вводятся в миллиметрах, длины — по Z.</p>
-    <details class="feature-group op-accordion" id="group-id" open>
-     <summary><span class="group-mark">◎</span><strong>Внутренний профиль</strong><span class="group-count" id="id-section-count">0</span><span class="group-chevron">⌄</span></summary>
-     <div class="op-accordion-body">
-      <div class="section-toolbar"><span class="form-note">Ступенчатые и глухие расточки</span><button class="mini-add" id="add-id-section" type="button">＋ Участок</button><button class="mini-add" id="add-id-taper" type="button">＋ Конус</button></div>
-      <div id="id-sections" class="feature-list"></div>
-     </div>
-    </details>
-    <details class="feature-group op-accordion" id="group-od">
-     <summary><span class="group-mark">⌑</span><strong>Наружные канавки</strong><span class="group-count" id="od-groove-count">0</span><span class="group-chevron">⌄</span></summary>
-     <div class="op-accordion-body"><div class="section-toolbar"><span class="form-note">Положение · ширина · диаметр дна</span><button class="mini-add" id="add-od-groove" type="button">＋ Добавить</button></div><div id="od-grooves" class="feature-list"></div></div>
-    </details>
-    <details class="feature-group op-accordion" id="group-in-groove">
-     <summary><span class="group-mark">◉</span><strong>Внутренние канавки</strong><span class="group-count" id="id-groove-count">0</span><span class="group-chevron">⌄</span></summary>
-     <div class="op-accordion-body"><div class="section-toolbar"><span class="form-note">Кольцевые канавки внутри отверстия</span><button class="mini-add" id="add-id-groove" type="button">＋ Добавить</button></div><div id="id-grooves" class="feature-list"></div></div>
-    </details>
-    <div class="axis-note"><span>⌖</span><div><b>Ось детали</b><small>Наружный и внутренний контуры, ступени, конусы и кольцевые канавки образуют единое тело вращения. Все размеры задаются вручную.</small></div></div>
-    <button class="button primary wide" id="features-next" type="button">Построить 3D-модель <span>⬡</span></button>
+  </div>
+  <div class="stage-column">
+   <section class="panel drawing-panel">
+    <div class="panel-header"><h2 class="tabbed-heading"><button class="selected" data-view="drawing"><svg><use href="#ic-view"/></svg> 2D Чертёж</button><button id="profile-tab">Профиль X/Z</button><button id="drawing-dims">Размеры</button></h2><div class="panel-actions"><button id="fit-drawing" title="Вписать" aria-label="Вписать чертёж">⛶</button></div></div>
+    <div class="paper"><svg id="drawing-svg" viewBox="0 0 680 300" role="img" aria-label="Чертёж детали в разрезе"></svg><div id="drawing-error" class="inline-error" hidden></div></div>
    </section>
-  </section>
-
-  <section class="page shopturn-page" id="page-shopturn" hidden>
-   <div class="page-title"><button class="back-button" data-go="edit" aria-label="К конструктору" type="button">‹</button><div><small>SHOPTURN / PROCESS PLANNER</small><h1>Операции ЧПУ</h1></div><span class="status-label">G54</span></div>
-   <section class="st-hero surface"><div><small>SIEMENS SINUMERIK 828D</small><h2>Карта обработки</h2><p id="st-meta">Операции · Контур · Инструменты</p></div><span class="st-icon">X<span>／</span>Z</span></section>
-   <p class="st-stale" id="st-stale" role="status" hidden>⚠ Геометрия CAD изменилась. Проверь контур и обнови его на вкладке «Контур».</p>
-   <div class="st-tabs" role="tablist" aria-label="Раздел ShopTurn"><button type="button" data-st-tab="operations" class="is-active" aria-selected="true">Операции</button><button type="button" data-st-tab="contour" aria-selected="false">Контур</button><button type="button" data-st-tab="header" aria-selected="false">Заголовок</button><button type="button" data-st-tab="checks" aria-selected="false">Проверка</button></div>
-   <section class="surface st-panel" id="st-content" aria-label="Редактор ShopTurn"></section>
-   <p id="st-message" class="st-message" role="status" aria-live="polite">Учебная карта обработки, не исполняемый код ЧПУ.</p>
-   <div class="st-export"><button id="st-export" class="button primary" type="button">↓ Карта TXT</button><button id="st-save-json" class="button ghost" type="button">↓ Проект JSON</button><button id="st-reset" class="button ghost" type="button">↺ Сброс</button></div>
-  </section>
-  <section class="page preview-page" id="page-preview" hidden>
-   <div class="page-title"><button class="back-button" data-go="edit" aria-label="Редактировать" type="button">‹</button><div><small>REAL GEOMETRY / B-REP</small><h1>3D-модель</h1></div><span class="status-label" id="model-state">ПРОФИЛЬ</span></div>
-   <div class="view-tabs" role="tablist" aria-label="Режим просмотра"><button id="tab-model" class="is-active" type="button" aria-selected="true">⬡ Модель</button><button id="tab-drawing" type="button" aria-selected="false">⌗ Контур</button></div>
-   <div class="viewer surface" id="viewer">
-    <div class="viewer-overlay"><span class="viewer-chip">3D / ORBIT</span><div class="viewer-toolbar"><button id="reset-camera" type="button" aria-label="Исходный ракурс">⌖</button><button id="zoom-in" type="button" aria-label="Приблизить">＋</button><button id="zoom-out" type="button" aria-label="Отдалить">−</button></div></div>
-    <canvas id="cad-canvas" aria-label="Интерактивный трёхмерный вид токарной детали"></canvas>
-    <svg id="profile-svg" class="profile-svg" viewBox="0 0 460 270" role="img" aria-label="Профиль детали в разрезе" hidden></svg>
-   </div>
-   <div class="summary-strip" id="summary-strip"><span>Ø38 макс.</span><span>L 37 мм</span><span>Отверстие Ø24</span></div>
-   <section class="surface tree-card"><div class="section-toolbar"><strong>Дерево операций</strong><button class="mini-add" data-go="edit" type="button">Редактировать ↗</button></div><div id="tree-list" class="tree-list"></div></section>
-   <div class="export-actions"><button id="make-step" class="button primary" type="button">▤ Создать STEP</button><button id="share-step" class="button success" type="button" disabled>↗ Поделиться</button></div>
-   <div class="fine-print export-message" id="export-message" role="status" aria-live="polite">STEP создаётся CAD-ядром Open CASCADE. После создания можно передать файл в eDrawings через меню iOS.</div>
-  </section>
-
-  <section class="page settings-page" id="page-settings" hidden>
-   <div class="page-title"><div><small>WORKSPACE / SYSTEM</small><h1>Параметры</h1></div><span class="status-label">V 0.5.1</span></div>
-   <div class="surface settings-card"><div class="setting-header"><b>Оформление</b><small>Тема приложения</small></div><div class="theme-choice"><button data-theme="dark" class="is-active" type="button">☾ Графит</button><button data-theme="light" type="button">☀ Титан</button></div></div>
-   <div class="surface settings-card"><div class="setting-header"><b>Проект</b><small>Сохраняется на этом устройстве автоматически</small></div><button id="download-project" type="button" class="button ghost wide">↓ Скачать проект JSON</button><button id="settings-import" type="button" class="button ghost wide">↑ Открыть проект JSON</button></div>
-   <div class="surface settings-card"><div class="setting-header"><b>Точность и ограничения</b></div><p class="small-description">Осесимметричные детали: наружные и внутренние ступени, конусы, глухие и сквозные расточки, кольцевые канавки OD/ID. Все реальные размеры по чертежу вводятся вручную. STEP — твердотельная B-Rep. Винтовая резьба, поперечные отверстия, фрезерные пазы и свободные эскизы пока не реализованы.</p></div>
-   <div class="surface settings-card"><div class="setting-header"><b>Open-source ядро</b></div><p class="small-description">Replicad (MIT), Open CASCADE (LGPL-2.1). CAD выполняется в Web Worker; при первой установке офлайн-ядро загружается и кэшируется вместе с приложением.</p></div>
-  </section>
- </main>
-
- <nav class="dock" aria-label="Навигация"><button data-go="home" class="dock-tab is-active" aria-current="page" type="button"><span class="dock-icon">⌂</span><span>Главная</span></button><button data-go="edit" class="dock-tab" type="button"><span class="dock-icon">▤</span><span>Контур</span></button><button data-go="shopturn" class="dock-tab" type="button"><span class="dock-icon">⌁</span><span>ShopTurn</span></button><button data-go="preview" class="dock-tab" type="button"><span class="dock-icon">⬡</span><span>3D-модель</span></button><button data-go="settings" class="dock-tab" type="button"><span class="dock-icon">☷</span><span>Ещё</span></button></nav>
- <dialog id="st-dialog" class="feature-dialog"><form id="st-dialog-form" method="dialog"><header><div><small>SHOPTURN / EDITOR</small><h2 id="st-dialog-title">Операция</h2></div><button type="button" id="st-dialog-close" class="dialog-close" aria-label="Закрыть">×</button></header><div id="st-dialog-fields" class="feature-fields"></div><p id="st-dialog-error" class="form-error" role="alert"></p><div class="dialog-actions"><button id="st-dialog-cancel" type="button" class="button ghost">Отмена</button><button type="submit" class="button primary">Сохранить</button></div></form></dialog>
- <dialog id="feature-dialog" class="feature-dialog"><form id="feature-form" method="dialog"><header><div><small>PARAMETRIC FEATURE</small><h2 id="feature-title">Ступень</h2></div><button type="button" id="close-feature" class="dialog-close" aria-label="Закрыть">×</button></header><div id="feature-fields" class="feature-fields"></div><p id="feature-error" class="form-error" role="alert"></p><div class="dialog-actions"><button id="cancel-feature" type="button" class="button ghost">Отмена</button><button id="submit-feature" type="submit" class="button primary">Сохранить</button></div></form></dialog>
- <input type="file" accept=".json,application/json" id="project-file" hidden>
- <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
- <script type="module" src="./src/app.js"></script>
+   <section class="panel model-panel">
+    <div class="panel-header"><h2 class="tabbed-heading"><button class="selected" data-view="model"><svg><use href="#ic-cube"/></svg> 3D Модель</button><button id="model-fit">Вписать</button><button id="model-rotate">Вращать</button></h2><div class="panel-actions"><button id="model-zoom-in" title="Приблизить" aria-label="Приблизить">＋</button><button id="model-zoom-out" title="Отдалить" aria-label="Отдалить">－</button></div></div>
+    <div class="model-viewport"><canvas id="cad-canvas" aria-label="Интерактивная трёхмерная модель детали"></canvas><div class="viewport-axes"><span>Z</span><span>Y</span><span>X</span></div><div id="model-error" class="inline-error" hidden></div><span class="viewport-help">Перетащи для вращения · щипок для масштаба</span></div>
+   </section>
+  </div>
+  <section class="panel settings-panel"><div class="panel-header"><h2>Настройки XZFORM 3D</h2></div><div class="settings-content"><label>Название детали <input id="part-name" maxlength="80" autocomplete="off"></label><label>Материал <input id="part-material" maxlength="60" autocomplete="off"></label><p>Координаты X задаются диаметрами. Z отсчитывается от правого торца (Z0), значения в миллиметрах. G54 станка здесь не изменяется.</p><button id="settings-theme">Переключить тему</button></div></section>
+  <section class="panel export-panel"><div class="panel-header"><h2>Экспорт геометрии</h2></div><div class="export-content"><svg><use href="#ic-cube"/></svg><h3>Твёрдотельная CAD-модель</h3><p>Экспорт в STEP (ISO 10303-21) из геометрического ядра Open CASCADE. Программа не генерирует управляющий G-код.</p><button class="primary" data-action="export-step"><svg><use href="#ic-export"/></svg> Создать и скачать STEP</button><button data-action="save"><svg><use href="#ic-save"/></svg> Сохранить проект JSON</button><span id="export-status" aria-live="polite"></span></div></section>
+ </div>
+ <nav class="dock" aria-label="Нижняя навигация"><button data-view="contour" class="dock-tab is-active"><svg><use href="#ic-contour"/></svg><span>Контур</span></button><button data-view="holes" class="dock-tab"><svg><use href="#ic-hole"/></svg><span>Отверстия</span></button><button data-view="drawing" class="dock-tab"><svg><use href="#ic-view"/></svg><span>Чертёж</span></button><button data-view="model" class="dock-tab"><svg><use href="#ic-cube"/></svg><span>3D</span></button><button data-view="export" class="dock-tab"><svg><use href="#ic-export"/></svg><span>STEP</span></button></nav>
+</main>
+<input type="file" id="open-file" accept=".json,application/json" hidden>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<script type="module" src="./src/xzform.js"></script>
 </body></html>
