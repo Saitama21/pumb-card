@@ -1,4 +1,5 @@
 import {exampleModel,newId,modelProfile,sanitizeModel,totalLength,outsideAt} from './model.js';
+import {initShopTurn,refreshShopTurn} from './shopturn.js';
 import {updatePreview,drawProfile,fitCamera,zoom} from './preview.js';
 import {drawLiveBlueprint,selectionDetails,featureBounds,toDisplayZ,fromDisplayZ,format} from './live-blueprint.js';
 const $=id=>document.getElementById(id);
@@ -23,13 +24,14 @@ function applyModel(next){
 function page(next){
  if(next==='preview'){try{profile=modelProfile(model)}catch(error){toast(error.message);return}}
  active=next;
- for(const id of ['home','edit','preview','settings'])$('page-'+id).hidden=id!==next;
+ for(const id of ['home','edit','shopturn','preview','settings'])$('page-'+id).hidden=id!==next;
  for(const item of document.querySelectorAll('.dock-tab')){
   const selected=item.dataset.go===next;item.classList.toggle('is-active',selected);
   selected?item.setAttribute('aria-current','page'):item.removeAttribute('aria-current');
  }
  if(next==='preview'){updatePreview($('cad-canvas'),profile);drawProfile($('profile-svg'),profile);renderTree()}
  if(next==='edit'){chooseStep(step);drawBlueprint()}
+ if(next==='shopturn')refreshShopTurn();
  window.scrollTo({top:0,behavior:'instant'});
 }
 function chooseStep(next){
@@ -307,7 +309,7 @@ function setView(name){
  $('tab-model').classList.toggle('is-active',!drawing);$('tab-drawing').classList.toggle('is-active',drawing);
  $('tab-model').setAttribute('aria-selected',String(!drawing));$('tab-drawing').setAttribute('aria-selected',String(drawing));
 }
-restore();profile=modelProfile(model);bind();render();setTheme(document.documentElement.dataset.theme);page('home');
+restore();profile=modelProfile(model);initShopTurn({getModel:()=>model,toast});bind();render();setTheme(document.documentElement.dataset.theme);page('home');
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){
  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{}));
 }

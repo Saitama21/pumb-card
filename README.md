@@ -2,6 +2,22 @@
 
 **Mobile-first offline-first PWA for SINUMERIK 828D operators.** The repository has been repurposed from Button Motion Lab for this dedicated application.
 
+## v0.4 · ShopTurn process planner and X/Z contour editor
+- New independent **ShopTurn** workspace: ordered, editable operation cards for facing, roughing, finishing, centric drilling, internal boring, grooving, threading and parting. Tool T, cutting edge D, feed F and speed S are included; order can be changed.
+- Configurable ShopTurn-inspired program header with **G54 locked** and XA/XI/ZA/ZI/ZB, XRA/XRI/ZRA/ZRI, safety clearance SC and tool-change mode MCS/WCS. Unknown XT/ZT are intentionally left **blank**, never treated as measured zero values.
+- Geometric X/Z contour editor: lines and circular arcs (R), diameter X coordinates, dimensionally consistent SVG visualization, editable nodes and transfer from existing CAD profile. Canvas/CAD origin and machine-workpiece origin remain conceptually distinct.
+- The operation plan autosaves offline and exports machine-*non-executable* TXT/JSON. The CAD project and existing STEP export remain independent; no unverified NC toolpaths or collision guarantees are claimed.
+- Unit checks, build and browser smoke are required before release. Production machining still requires verification of tool geometry, spindle/chuck setup, offsets and simulation on the real SINUMERIK 828D.
+
+## v0.4 · ShopTurn operation planner (educational / not executable NC)
+- New **ShopTurn** workspace in the original independent five-tab bottom dock. The existing CAD/3D/STEP workflow is unchanged.
+- Editable, ordered process steps: facing, CYCLE952 roughing/finishing, drilling, internal boring, CYCLE930 grooves, CYCLE99 threading and CYCLE92 parting. Each card stores tool T, cutting edge D, feed F in mm/rev and spindle S, plus cycle-specific inputs.
+- **G54-only** program header with stock XA/XI/ZA/ZI/ZB, retract XRA/XRI/ZRA/ZRI/SC, spindle cap, optional XT/ZT and MCS/WCS reference. XT/ZT remain unset until measured; no automatic machine-safe defaults.
+- Dedicated **X/Z contour** editor: starting point, lines, clockwise and counterclockwise radius arcs; exact physical-radius/diameter conversion and geometric validation; live SVG preview; optional geometry transfer from the current CAD model.
+- Local autosave and JSON/TXT export. Geometry-version mismatch warning and pre-machining verification checklist.
+- Important: this is a **non-executable process plan, not a ShopTurn/NC postprocessor**, machine toolpath simulator or collision checker. Validate on the actual Siemens 828D before any run. The baseline Siemens Turning manual here is 02/2012 (V4.5); user's OEM software V04.95 may differ.
+- Node regression tests and additional mobile/desktop browser smoke tests cover ShopTurn.
+
 ## v0.3 · Premium live X/Z blueprint
 - Interactive, exact **live SVG blueprint** above the editing controls, driven by the same axial model as 3D and STEP. Selected outer step, inner bore, OD/ID groove highlighted with precise Z start/end, length and diameter.
 - Tap any operation to highlight it, or select a region of the blueprint and tap **Edit**. Expandable compact operation groups reduce unnecessary scrolling on mobile.
@@ -45,7 +61,9 @@ Deployment: GitHub Actions tests and uploads the built `dist/` to GitHub Pages o
 
 Architecture:
 - `src/model.js` pure parametric profile, validation and immutable import
-- `src/app.js` interface and editable operation tree
+- `src/app.js` CAD interface and editable geometry feature tree
+- `src/shopturn-core.js` immutable validated ShopTurn process and X/Z contour mathematics
+- `src/shopturn.js`, `shopturn.css` operation planner and touch-first contour editor
 - `src/preview.js` faithfully reconstructed Three.js LatheGeometry preview from profile points
 - `src/cad.worker.js` **real** Open CASCADE B-Rep revolved solid and STEP Blob
 - `scripts/build-sw.mjs` offline version-coherent asset manifest generated after Vite build

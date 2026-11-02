@@ -19,7 +19,7 @@ async function checkSize(w,h){
  page.on('pageerror',error=>faults.push(String(error)));
  await page.goto(host,{waitUntil:'networkidle0',timeout:45000});
  // Each viewport gets its own geometry. Prevent previous viewport's saved operations from creating overlaps.
- await page.evaluate(()=>localStorage.removeItem('cnc-toolbox-pro-current-v1'));
+ await page.evaluate(()=>{localStorage.removeItem('cnc-toolbox-pro-current-v1');localStorage.removeItem('cnc-toolbox-shopturn-v1')});
  await page.reload({waitUntil:'networkidle0',timeout:45000});
  await page.waitForSelector('#new-project',{timeout:10000});
  const result=await page.evaluate(()=>{
@@ -32,6 +32,29 @@ async function checkSize(w,h){
  if(Math.abs(result.width-Math.min(result.clientWidth*.87,w>=700?560:640))>1.5||Math.abs(result.center-result.clientWidth/2)>1.5||Math.abs(result.bottom-2)>1.5)throw Error('Dock geometry differs at '+w+': '+JSON.stringify(result));
  if(result.scrollWidth>w+1)throw Error('Horizontal overflow at '+w+': '+result.scrollWidth);
  if(!result.active.includes('Главная'))throw Error('Wrong landing tab at '+w);
+ // ShopTurn workflow: 5-tab dock, operation list, contour editing and fixed G54.
+ await page.click('[data-go="shopturn"].dock-tab');
+ await page.waitForSelector('#st-ops .st-op');
+ const initialOps=await page.$$('#st-ops .st-op');
+ if(initialOps.length!==3)throw Error('ShopTurn initial process has wrong operation count at '+w+' count='+initialOps.length+' '+JSON.stringify(await page.evaluate(()=>({meta:document.querySelector('#st-meta')?.textContent,ops:document.querySelector('#st-ops')?.innerHTML.slice(0,1500),message:document.querySelector('#st-message')?.textContent,dialog:document.querySelector('#st-dialog')?.open})))+' faults='+faults.join(' | '));
+ await page.click('[data-st-tab="contour"]');
+ await page.waitForSelector('#st-contour-svg polyline');
+ const originalPoints=await page.$$('#st-points .st-point');
+ if(originalPoints.length<2)throw Error('ShopTurn contour points missing at '+w);
+ await page.click('#st-add-line');
+ await page.waitForSelector('#st-dialog[open]');
+ await page.click('#st-dialog-form button[type="submit"]');
+ await page.waitForSelector('#st-dialog:not([open])');
+ const currentPoints=await page.$$('#st-points .st-point');
+ if(currentPoints.length!==originalPoints.length+1)throw Error('ShopTurn G1 contour edit was not saved at '+w);
+ await page.click('[data-st-tab="header"]');
+ const origin=await page.$eval('#st-header-form [name="g54"]',el=>el.value);
+ if(origin!=='G54')throw Error('ShopTurn origin must always be G54');
+ const toolChange=await page.$$eval('#st-header-form [name="xt"],#st-header-form [name="zt"]',els=>els.map(el=>el.value));
+ if(toolChange.length!==2||toolChange.some(v=>v!==''))throw Error('Unverified tool-change coordinates must stay blank');
+ await page.click('[data-st-tab="checks"]');
+ const statusChecks=await page.$$('#st-content .st-check');
+ if(statusChecks.length<6)throw Error('ShopTurn verification checklist missing');
  await page.click('[data-go="edit"].dock-tab');
  await page.waitForSelector('#editor-stock:not([hidden])');
  const blueprint=await page.evaluate(()=>({
