@@ -67,3 +67,38 @@ test('Canonical numeric parsing rejects unsafe strings and invalid JSON',()=>{
  assert.throws(()=>buildPart(normalizePart({points:[],holes:[]})),/от 2 до 250/);
  assert.throws(()=>normalizePart({points:null,holes:[]}),/Неверный формат/);
 });
+
+
+test('DKK-007 example includes a physical 2-flat S27 operation on Ø31 head',()=>{
+ const p=examplePart(),geometry=buildPart(p);
+ assert.equal(p.flats.length,1);
+ assert.deepEqual(geometry.flats.map(f=>[f.width,f.localZ0,f.localZ1,f.angle]),[[27,0,21,0]]);
+ assert.equal(geometry.length,58);
+ assert.equal(geometry.maxD,31);
+});
+test('Older saved projects without flats remain valid with no destructive migration',()=>{
+ const p=examplePart();delete p.flats;
+ const v=normalizePart(p);
+ assert.deepEqual(v.flats,[]);
+ assert.equal(buildPart(v).length,58);
+});
+test('Flats reject unsafe width or intersection with through-bore',()=>{
+ const p=examplePart();
+ p.flats[0].width=32;
+ assert.throws(()=>buildPart(p),/Размер S/);
+ p.flats[0].width=12;
+ assert.throws(()=>buildPart(p),/пересекают отверстие/);
+ p.flats[0].width=27;p.flats[0].z0=-70;
+ assert.throws(()=>buildPart(p),/внутри длины/);
+});
+test('Flats cannot enter smaller turning step or overlap another pair',()=>{
+ const p=examplePart();p.flats[0].z1=0;
+ assert.throws(()=>buildPart(p),/Размер S/);
+ p.flats[0].z1=-37;
+ p.flats.push({...p.flats[0],id:'other',z0:-50});
+ assert.throws(()=>buildPart(p),/Перекрывающиеся/);
+});
+test('Angular orientation normalizes to one paired-flat half-turn',()=>{
+ const p=examplePart();p.flats[0].angle=225;
+ assert.equal(buildPart(p).flats[0].angle,45);
+});

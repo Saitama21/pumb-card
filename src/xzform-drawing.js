@@ -63,5 +63,9 @@ export function drawSection(svg,geometry,part,selected,{grid=false,dimensions=tr
   markup+='<circle data-selected-point cx="'+px.toFixed(2)+'" cy="'+py.toFixed(2)+'" r="5.2" fill="#ed9c23" stroke="#fff" stroke-width="2.3"/>';
  }
  markup+='<g font-family="-apple-system,BlinkMacSystemFont,Arial,sans-serif" font-size="12" fill="#526f8e" stroke="none"><text x="10" y="22" font-weight="700">X / Z · РАЗРЕЗ</text><text x="'+(W-10)+'" y="22" text-anchor="end">мм · X = Ø</text></g>';
+ if(geometry.flats?.length){
+  const labels=geometry.flats.map(f=>'S'+Number(f.width).toFixed(3)).join(' · ');
+  markup+='<text x="10" y="'+(H-10)+'" font-size="11" fill="#35658d" stroke="none" font-weight="700">2 ЛЫСКИ · '+labels+' · плоскости см. в 3D</text>';
+ }
  svg.innerHTML=markup;
 }

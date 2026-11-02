@@ -4,7 +4,7 @@ import {drawSection} from './xzform-drawing.js';
 const $=id=>document.getElementById(id);
 const STORAGE='xzform-3d-part-v1',THEME='xzform-3d-theme-v1';
 let part=examplePart(),geometry=null,selected=0,view='contour',lastError='',history=[],future=[],rev=0,last3D=-1,busy=false;
-let showGrid=false,showDims=true,showSection=true,autoSpin=false,worker=null;
+let showGrid=false,showDims=true,showSection=true,autoSpin=false,worker=null,pending3D=-1;
 const fmt=n=>Number(n).toFixed(3),number=s=>Number(String(s).trim().replace(',','.'));
 const clone=()=>structuredClone(part);
 function toast(message){const t=$('toast');t.textContent=String(message);t.hidden=false;clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.hidden=true,3200);}
@@ -55,12 +55,50 @@ function renderTables(){
    '<td><button class="hole-delete" data-delete-hole aria-label="Удалить отверстие">×</button></td>';
   holes.append(tr);
  });
+ const flats=$('flats-body');flats.replaceChildren();
+ part.flats.forEach((f,i)=>{
+  const tr=document.createElement('tr');tr.dataset.index=i;
+  tr.innerHTML='<td><input name="width" inputmode="decimal" aria-label="Лыски '+(i+1)+' размер S" value="'+fmt(f.width)+'"></td>'+ 
+   '<td><input name="z0" inputmode="decimal" aria-label="Начало лысок '+(i+1)+'" value="'+fmt(f.z0)+'"></td>'+ 
+   '<td><input name="z1" inputmode="decimal" aria-label="Конец лысок '+(i+1)+'" value="'+fmt(f.z1)+'"></td>'+ 
+   '<td><input name="angle" inputmode="decimal" aria-label="Угол лысок '+(i+1)+'" value="'+fmt(f.angle)+'"></td>'+ 
+   '<td><button class="flat-delete" data-delete-flat aria-label="Удалить пару лысок">×</button></td>';
+  flats.append(tr);
+ });
 }
 function svgDraw(){drawSection($('drawing-svg'),geometry,part,selected,{grid:showGrid,dimensions:showDims,section:showSection});}
+function cadRequest(command,snapshot){
+ worker??=new Worker(new URL('./cad.worker.js',import.meta.url),{type:'module'});
+ const id=newId();
+ return new Promise((resolve,reject)=>{
+  const cleanup=()=>{clearTimeout(timer);worker.removeEventListener('message',receive);worker.removeEventListener('error',onError);};
+  const receive=e=>{if(e.data?.id!==id)return;cleanup();e.data.ok?resolve(e.data):reject(Error(e.data.error||'Ошибка построения B-Rep'));};
+  const onError=e=>{cleanup();reject(Error('CAD Worker: '+(e.message||'неизвестная ошибка')));};
+  const timer=setTimeout(()=>{cleanup();reject(Error('Open CASCADE не ответил за 120 секунд'));},120000);
+  worker.addEventListener('message',receive);
+  worker.addEventListener('error',onError);
+  worker.postMessage({id,command,profile:snapshot.profile.polygon,flats:snapshot.flats,maxD:snapshot.maxD});
+ });
+}
 function update3D(){
  if(!geometry||last3D===rev||!(window.innerWidth>760||view==='model'))return;
- try{updatePreview($('cad-canvas'),geometry.profile);last3D=rev;$('model-error').hidden=true;}
- catch(error){$('model-error').hidden=false;$('model-error').textContent='3D недоступно: '+error.message;}
+ const revision=rev,snapshot=geometry;
+ if(!snapshot.flats.length){
+  try{updatePreview($('cad-canvas'),snapshot.profile);last3D=revision;$('model-error').hidden=true;}
+  catch(error){$('model-error').hidden=false;$('model-error').textContent='3D недоступно: '+error.message;}
+  return;
+ }
+ if(pending3D===revision)return;
+ pending3D=revision;
+ $('model-error').hidden=false;$('model-error').textContent='Open CASCADE · строим точные лыски…';
+ cadRequest('mesh',snapshot).then(reply=>{
+  if(revision!==rev)return;
+  updatePreview($('cad-canvas'),snapshot.profile,{vertices:reply.vertices,triangles:reply.triangles,normals:reply.normals});
+  last3D=revision;$('model-error').hidden=true;
+ }).catch(error=>{
+  if(revision!==rev)return;
+  $('model-error').hidden=false;$('model-error').textContent='Не удалось построить лыски: '+error.message;
+ }).finally(()=>{if(pending3D===revision)pending3D=-1;});
 }
 function renderAll(){
  syncMetadata();renderTables();
@@ -72,12 +110,12 @@ function renderAll(){
  $('export-status').textContent=lastError?'Ошибка геометрии: '+lastError:'Модель проверена · '+fmt(geometry.length)+' мм · Ø'+fmt(geometry.maxD);
 }
 function setView(next){
- if(!['contour','holes','drawing','model','settings','export'].includes(next))return;
+ if(!['contour','holes','flats','drawing','model','settings','export'].includes(next))return;
  view=next;$('workspace').dataset.view=next;
  document.querySelectorAll('[data-view]').forEach(b=>{
   const on=b.dataset.view===next;
   b.classList.toggle('active',on&&b.closest('.sidebar')!==null);
-  b.classList.toggle('is-active',on&&b.closest('.dock')!==null);
+  b.classList.toggle('is-active',(on||(next==='flats'&&b.dataset.view==='holes'))&&b.closest('.dock')!==null);
   if(b.closest('.dock'))on?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current');
   if(b.closest('.menu-bar'))b.classList.toggle('selected',on||(next==='holes'&&b.dataset.view==='contour')||(next==='settings'&&b.dataset.view==='contour'));
  });
@@ -109,7 +147,7 @@ function action(kind){
  if(kind==='redo')return moveHistory(future,history);
  if(kind==='new'){
   if(!window.confirm('Создать новую деталь? Текущий проект можно сохранить в JSON.'))return;
-  const next={version:2,name:'Новая деталь',material:'',origin:'right',points:[{id:newId(),x:20,z:0},{id:newId(),x:20,z:-30}],holes:[]};
+  const next={version:2,name:'Новая деталь',material:'',origin:'right',points:[{id:newId(),x:20,z:0},{id:newId(),x:20,z:-30}],holes:[],flats:[]};
   return setPart(next);
  }
  if(kind==='add-hole'){
@@ -117,6 +155,21 @@ function action(kind){
   const sample=geometry.part,mid=Math.min(...sample.points.map(p=>p.x))*.3;
   commit(()=>part.holes.push({id:newId(),d:round(mid),z0:geometry.zMin,z1:geometry.zMax}));
   return setView('holes');
+ }
+ if(kind==='add-flat'){
+  if(!geometry)return toast('Сначала исправь контур детали');
+  const nodes=part.points,maxD=geometry.maxD;
+  const candidates=[];
+  for(let i=1;i<nodes.length;i++){
+   if(Math.abs(nodes[i].x-maxD)<1e-6&&Math.abs(nodes[i-1].x-maxD)<1e-6&&Math.abs(nodes[i].z-nodes[i-1].z)>1e-6)
+    candidates.push({z0:Math.min(nodes[i].z,nodes[i-1].z),z1:Math.max(nodes[i].z,nodes[i-1].z)});
+  }
+  if(!candidates.length)return toast('Для лысок нужен цилиндрический участок с одинаковым X в двух точках');
+  const head=candidates.sort((a,b)=>(b.z1-b.z0)-(a.z1-a.z0))[0];
+  if(part.flats.some(f=>f.z0<head.z1&&f.z1>head.z0))return toast('На этом участке уже есть лыски — измени существующие');
+  const width=round(maxD-4);
+  commit(()=>part.flats.push({id:newId(),width,z0:head.z0,z1:head.z1,angle:0}));
+  setView('flats');return;
  }
  if(kind==='validate'){try{const x=buildPart(part);toast('Геометрия корректна: L '+fmt(x.length)+' мм, Ø '+fmt(x.maxD)+' мм');}catch(error){toast(error.message)}return;}
  if(kind==='save')return saveJSON();
@@ -142,17 +195,17 @@ async function importJSON(file){
 }
 async function exportSTEP(){
  if(busy)return;
- let profile;try{profile=buildPart(part).profile;}catch(error){return toast(error.message)}
+ let snapshot;
+ try{snapshot=buildPart(part);}catch(error){return toast(error.message)}
+ const filename=part.name;
  busy=true;document.querySelectorAll('[data-action="export-step"]').forEach(b=>b.disabled=true);
  $('export-status').textContent='Open CASCADE: построение STEP…';
  try{
-  worker??=new Worker(new URL('./cad.worker.js',import.meta.url),{type:'module'});
-  const id=newId(),reply=await new Promise((resolve,reject)=>{
-   const handler=e=>{if(e.data?.id!==id)return;worker.removeEventListener('message',handler);e.data.ok?resolve(e.data.buffer):reject(Error(e.data.error||'STEP не создан'));};
-   worker.addEventListener('message',handler);worker.postMessage({id,command:'step',profile:profile.polygon});
-  });
-  const blob=new Blob([reply],{type:'application/step'});
-  download(blob,part.name+'.step');$('export-status').textContent='STEP создан · '+Math.round(blob.size/1024)+' КБ';toast('STEP сформирован Open CASCADE');
+  const reply=await cadRequest('step',snapshot);
+  const blob=new Blob([reply.buffer],{type:'application/step'});
+  download(blob,filename+'.step');
+  $('export-status').textContent='STEP создан · '+Math.round(blob.size/1024)+' КБ';
+  toast('STEP сформирован из B-Rep'+(snapshot.flats.length?' с лысками':''));
  }catch(error){$('export-status').textContent='Ошибка STEP: '+error.message;toast(error.message);}
  finally{busy=false;document.querySelectorAll('[data-action="export-step"]').forEach(b=>b.disabled=!!lastError);}
 }
@@ -178,9 +231,14 @@ function bind(){
  });
  $('points-body').addEventListener('change',event=>updateRow(event.target,'points'));
  $('holes-body').addEventListener('change',event=>updateRow(event.target,'holes'));
+ $('flats-body').addEventListener('change',event=>updateRow(event.target,'flats'));
  $('holes-body').addEventListener('click',event=>{
   const b=event.target.closest('[data-delete-hole]');if(!b)return;
   const i=Number(b.closest('tr').dataset.index);commit(()=>part.holes.splice(i,1));
+ });
+ $('flats-body').addEventListener('click',event=>{
+  const b=event.target.closest('[data-delete-flat]');if(!b)return;
+  const i=Number(b.closest('tr').dataset.index);commit(()=>part.flats.splice(i,1));
  });
  $('open-file').addEventListener('change',async e=>{const file=e.target.files[0];if(file)await importJSON(file);e.target.value='';});
  $('rename-project').addEventListener('click',()=>setView('settings'));
