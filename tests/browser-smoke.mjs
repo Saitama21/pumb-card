@@ -19,7 +19,7 @@ async function checkSize(w,h){
  page.on('pageerror',error=>faults.push(String(error)));
  await page.goto(host,{waitUntil:'networkidle0',timeout:45000});
  // Each viewport gets its own geometry. Prevent previous viewport's saved operations from creating overlaps.
- await page.evaluate(()=>localStorage.removeItem('cnc-toolbox-pro-current-v1'));
+ await page.evaluate(()=>{localStorage.removeItem('cnc-toolbox-pro-current-v1');localStorage.removeItem('cnc-toolbox-shopturn-v1')});
  await page.reload({waitUntil:'networkidle0',timeout:45000});
  await page.waitForSelector('#new-project',{timeout:10000});
  const result=await page.evaluate(()=>{
@@ -50,6 +50,8 @@ async function checkSize(w,h){
  await page.click('[data-st-tab="header"]');
  const origin=await page.$eval('#st-header-form [name="g54"]',el=>el.value);
  if(origin!=='G54')throw Error('ShopTurn origin must always be G54');
+ const toolChange=await page.$eval('#st-header-form [name="xt"],#st-header-form [name="zt"]',els=>els.map(el=>el.value));
+ if(toolChange.length!==2||toolChange.some(v=>v!==''))throw Error('Unverified tool-change coordinates must stay blank');
  await page.click('[data-st-tab="checks"]');
  const statusChecks=await page.$('#st-content .st-check');
  if(statusChecks.length<6)throw Error('ShopTurn verification checklist missing');
