@@ -1,5 +1,6 @@
 import {examplePart,normalizePart,buildPart,fromLegacy,newId,round} from './xzform-core.js';
 import {updatePreview,fitCamera,zoom,toggleAutoRotate} from './preview.js';
+import {drawSection} from './xzform-drawing.js';
 const $=id=>document.getElementById(id);
 const STORAGE='xzform-3d-part-v1',THEME='xzform-3d-theme-v1';
 let part=examplePart(),geometry=null,selected=0,view='contour',lastError='',history=[],future=[],rev=0,last3D=-1,busy=false;
@@ -55,45 +56,7 @@ function renderTables(){
   holes.append(tr);
  });
 }
-function svgDraw(){
- const svg=$('drawing-svg');
- if(!geometry){svg.replaceChildren();return;}
- const {profile,zMin,zMax,maxD,length}=geometry;
- const W=680,H=300,cy=147,scale=Math.min(470/length,172/maxD),X=z=>113+z*scale,Y=r=>cy-r*scale;
- const path=(nodes,sign)=>nodes.map((v,i)=>(i?'L':'M')+X(v[1]).toFixed(2)+' '+Y(sign*v[0]).toFixed(2)).join(' ')+'Z';
- const outer=(sign)=>profile.outer.map((v,i)=>(i?'L':'M')+X(v[1]).toFixed(2)+' '+Y(sign*v[0]).toFixed(2)).join(' ');
- const hatch='<defs><pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0 V8" stroke="#b6d4fa" stroke-width="2"/></pattern></defs>';
- let markup=hatch;
- if(showGrid){for(let n=0;n<=W;n+=25)markup+='<path d="M'+n+' 0V300" stroke="#e7eef6" stroke-width=".8"/>';for(let n=0;n<=H;n+=25)markup+='<path d="M0 '+n+'H680" stroke="#e7eef6" stroke-width=".8"/>';}
- if(showSection){
-  markup+='<path d="'+path(profile.polygon,1)+'" fill="url(#hatch)" stroke="none"/>';
-  markup+='<path d="'+path(profile.polygon,-1)+'" fill="url(#hatch)" stroke="none"/>';
- }
- markup+='<path d="'+outer(1)+' '+outer(-1)+'" fill="none" stroke="#2163a3" stroke-width="2.5" stroke-linejoin="round"/>';
- if(profile.inner.length){
-  const q=profile.inner;
-  for(const s of [1,-1])markup+='<path d="'+q.map((v,i)=>(i?'L':'M')+X(v[1]).toFixed(2)+' '+Y(s*v[0]).toFixed(2)).join(' ')+'" fill="none" stroke="#2163a3" stroke-width="2.3"/>';
- }
- markup+='<path d="M60 '+cy+'H625" stroke="#7f94a9" stroke-dasharray="10 7" stroke-width="1.1"/>';
- const last=X(length),first=X(0);
- if(showDims){
-  const dimY=261,top=cy-maxD*scale/2,bot=cy+maxD*scale/2;
-  markup+='<g fill="#263d59" stroke="#41566a" font-family="Arial,sans-serif">'+
-   '<path d="M'+first+' '+(bot+4)+'v34M'+last+' '+(bot+4)+'v34M'+first+' '+dimY+'H'+last+'" fill="none" stroke-width="1.15"/>'+
-   '<path d="M'+first+' '+dimY+'l7 -3v6zM'+last+' '+dimY+'l-7 -3v6z" fill="#41566a" stroke="none"/>'+
-   '<text x="'+(first+last)/2+'" y="'+(dimY-8)+'" stroke="none" font-size="16" text-anchor="middle" font-weight="700">'+fmt(length)+' мм</text>'+
-   '<path d="M'+(first-20)+' '+(cy-profile.outer[0][0]*scale)+'V'+(cy+profile.outer[0][0]*scale)+'" fill="none" stroke-width="1.2"/>'+
-   '<text x="'+(first-29)+'" y="'+(cy+5)+'" text-anchor="end" stroke="none" font-size="17" font-weight="700">Ø'+fmt(part.points.find(p=>Math.abs(p.z-zMin)<1e-6)?.x||maxD)+'</text>'+
-   '<text x="'+(last+13)+'" y="'+(cy+5)+'" stroke="none" font-size="16" font-weight="700">Ø'+fmt(part.points.find(p=>Math.abs(p.z-zMax)<1e-6)?.x||maxD)+'</text></g>';
- }
- const selectedPoint=part.points[selected];
- if(selectedPoint){
-  const x=X(selectedPoint.z-zMin),y=Y(selectedPoint.x/2);
-  markup+='<circle cx="'+x+'" cy="'+y+'" r="6" fill="#ec9f27" stroke="#fff" stroke-width="2"/>';
- }
- markup+='<text x="14" y="20" font-size="11" fill="#617e9a" font-family="Arial,sans-serif">XZFORM · X = Ø мм · Z0 справа</text>';
- svg.innerHTML=markup;
-}
+function svgDraw(){drawSection($('drawing-svg'),geometry,part,selected,{grid:showGrid,dimensions:showDims,section:showSection});}
 function update3D(){
  if(!geometry||last3D===rev||!(window.innerWidth>760||view==='model'))return;
  try{updatePreview($('cad-canvas'),geometry.profile);last3D=rev;$('model-error').hidden=true;}
@@ -118,7 +81,7 @@ function setView(next){
   if(b.closest('.dock'))on?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current');
   if(b.closest('.menu-bar'))b.classList.toggle('selected',on||(next==='holes'&&b.dataset.view==='contour')||(next==='settings'&&b.dataset.view==='contour'));
  });
- requestAnimationFrame(update3D);
+ requestAnimationFrame(()=>{svgDraw();update3D();});
 }
 function addPoint(mode){
  commit(()=>{
@@ -237,7 +200,8 @@ function bind(){
  $('model-zoom-in').addEventListener('click',()=>zoom(.8));
  $('model-zoom-out').addEventListener('click',()=>zoom(1.25));
  window.addEventListener('online',networkStatus);window.addEventListener('offline',networkStatus);
- window.addEventListener('resize',()=>update3D());
+ window.addEventListener('resize',()=>{svgDraw();update3D();});
+ new ResizeObserver(()=>{if(geometry&&(view==='drawing'||window.innerWidth>760))svgDraw();}).observe($('drawing-svg'));
  document.addEventListener('keydown',event=>{
   if(event.target.matches('input,textarea')||event.target.isContentEditable)return;
   if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'){event.preventDefault();action(event.shiftKey?'redo':'undo');}

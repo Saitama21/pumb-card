@@ -32,6 +32,16 @@ async function viewportCheck(w,h){
  if(Math.abs(result.width-Math.min(result.client*.87,640))>1.5||Math.abs(result.center-result.client/2)>1.5||Math.abs(result.bottom-2)>1.5)
   throw Error('Fixed dock differs from approved layout at '+w+': '+JSON.stringify(result));
  if(result.scroll>result.client+1)throw Error('Horizontal overflow '+w+': '+JSON.stringify(result));
+ if(w<=760){
+  const ribbon=await page.evaluate(()=>{
+   const bar=document.querySelector('.ribbon');
+   const buttons=[...bar.querySelectorAll('button')].filter(el=>el.getClientRects().length>0&&getComputedStyle(el).visibility!=='hidden');
+   return {visible:buttons.length,width:bar.clientWidth,scroll:bar.scrollWidth,
+    clipped:buttons.filter(el=>el.getBoundingClientRect().right>bar.getBoundingClientRect().right+2).map(el=>el.textContent.trim())};
+  });
+  if(ribbon.visible!==6||ribbon.scroll>ribbon.width+2||ribbon.clipped.length)
+   throw Error('Mobile command ribbon clipped at '+w+': '+JSON.stringify(ribbon));
+ }
  if(!result.title.includes('XZFORM 3D')||result.points!==4||result.holes!==1||result.drawing<3)
   throw Error('Initial CAD workspace wrong '+w+': '+JSON.stringify(result));
  // Change a real diameter and ensure the model remains valid.
@@ -66,6 +76,24 @@ async function viewportCheck(w,h){
  await page.click('.dock [data-view=drawing]');
  const drawingVisible=await page.$eval('.drawing-panel',el=>getComputedStyle(el).display!=='none');
  if(!drawingVisible)throw Error('Drawing view invisible '+w);
+ await page.waitForFunction(()=>{
+  const svg=document.querySelector('#drawing-svg');
+  const values=svg.getAttribute('viewBox')?.split(' ').map(Number);
+  return svg.clientWidth>200&&svg.clientHeight>140&&
+    Math.abs(values?.[2]-svg.clientWidth)<2&&Math.abs(values?.[3]-svg.clientHeight)<2;
+ },{timeout:12000});
+ const drawingFit=await page.evaluate(()=>{
+  const svg=document.querySelector('#drawing-svg');
+  const viewBox=svg.viewBox.baseVal,shape=svg.querySelector('[data-profile="outer"]').getBBox();
+  return {width:svg.clientWidth,height:svg.clientHeight,
+   viewWidth:viewBox.width,viewHeight:viewBox.height,
+   partWidth:shape.width,partHeight:shape.height};
+ });
+ if(Math.abs(drawingFit.viewWidth-drawingFit.width)>2||
+    Math.abs(drawingFit.viewHeight-drawingFit.height)>2||
+    drawingFit.partWidth<drawingFit.width*.3||
+    drawingFit.partHeight<15)
+  throw Error('Drawing not fitted to viewport at '+w+': '+JSON.stringify(drawingFit));
  await page.click('.dock [data-view=model]');
  await page.waitForFunction(()=>document.querySelector('#cad-canvas').width>100&&document.querySelector('#cad-canvas').height>100,{timeout:25000});
  await page.click('.dock [data-view=export]');
