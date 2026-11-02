@@ -1,5 +1,6 @@
 import {defaultPlan,defaultOperation,contourFromModel,contourPath,modelMatches,sanitizePlan,OP_TYPES} from './shopturn-core.js';
 import {modelProfile} from './model.js';
+import {mountShopTurnContour} from './contour-editor.js';
 
 const KEY='cnc-toolbox-shopturn-v1';
 const q=(id)=>document.getElementById(id);
@@ -84,58 +85,13 @@ function drawHeader(root){
  };
 }
 function drawContourEditor(root){
- root.innerHTML='<div class="st-toolbar"><b>Контур X / Z</b><span class="st-tag">G1 · ДУГА R</span></div>'+
- '<p class="st-muted">Последовательные элементы профиля в диаметрах X и машинных координатах Z. Нажми точку на чертеже или строку для изменения.</p>'+
- '<svg id="st-contour-svg" class="st-plot" viewBox="0 0 480 235" role="img" aria-label="Геометрический контур в плоскости X/Z"></svg>'+
- '<div class="st-contour-actions"><button id="st-add-line" class="button ghost" type="button">＋ Прямая</button><button id="st-add-arc" class="button ghost" type="button">⌒ Дуга R</button><button id="st-sync" class="button primary" type="button">↻ Из CAD</button></div>'+
- '<div class="st-points" id="st-points"></div>'+
- '<p class="st-caution">Точки описывают только геометрию. G2/G3 на конкретной конфигурации и коррекция радиуса вершины резца должны проверяться отдельно. Самопересечения и доступность инструмента не рассчитываются.</p>';
- renderPlot();
- const list=q('st-points');
- plan.contour.forEach((v,i)=>{
-  const b=document.createElement('button');b.type='button';b.className='st-point';
-  b.innerHTML='<span>'+String(i+1).padStart(2,'0')+'</span><b>'+html(({start:'Старт',line:'Прямая',arcCW:'Дуга ↻',arcCCW:'Дуга ↺'})[v.kind])+'</b><small>X'+fmt(v.x)+' · Z'+fmt(v.z)+(v.radius?' · R'+fmt(v.radius):'')+'</small><span>✎</span>';
-  b.onclick=()=>openPoint(i);list.append(b);
- });
- const add=kind=>{
-  const next=structuredClone(plan),last=next.contour.at(-1);
-  next.contour.push({id:'c'+Date.now(),kind,x:last.x,z:last.z-5,...(kind.startsWith('arc')?{radius:5}:{})});
-  if(save(next))openPoint(next.contour.length-1);
- };
- q('st-add-line').onclick=()=>add('line');
- q('st-add-arc').onclick=()=>add('arcCCW');
- q('st-sync').onclick=()=>{
-  if(!confirm('Заменить ручной контур и параметры заготовки геометрией текущей CAD-детали?'))return;
+ mountShopTurnContour(root,plan,save,message,()=>{
+  if(!confirm('Заменить ручной контур геометрией CAD-детали? Изменения ручных дуг, фасок и радиусов будут потеряны.'))return;
   const next=structuredClone(plan),p=modelProfile(getPart());
   next.contour=contourFromModel(getPart());next.modelSignature=JSON.stringify(p.polygon);
   next.header.xa=p.maxD;next.header.xi=getPart().bore;next.header.za=0;next.header.zi=-p.length;next.header.zb=-p.length;
-  if(save(next))message('Контур обновлён из CAD. Проверь технологичность переходов.');
- };
-}
-function renderPlot(){
- const svg=q('st-contour-svg');if(!svg)return;
- const ns='http://www.w3.org/2000/svg';
- const add=(tag,attrs,text)=>{const e=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,String(v));if(text!==undefined)e.textContent=text;svg.append(e);return e};
- let p;
- try{p=contourPath(plan.contour)}catch(e){add('text',{x:20,y:40,fill:'#ff8a9a','font-size':12},e.message);return}
- const all=[...p,{z:0,r:0}];
- let minZ=Math.min(...all.map(v=>v.z)),maxZ=Math.max(...all.map(v=>v.z)),minR=0,maxR=Math.max(...all.map(v=>v.r));
- const dz=Math.max(maxZ-minZ,1),dr=Math.max(maxR-minR,1);
- const mx=36,my=29,w=408,h=169;
- const px=z=>mx+(z-minZ)/dz*w,py=r=>my+h-(r-minR)/dr*h;
- for(let t=0;t<=4;t++){
-  const yy=my+t*h/4;add('line',{x1:mx,y1:yy,x2:mx+w,y2:yy,stroke:'#34536a','stroke-width':.7,'stroke-dasharray':'3 6'});
-  const zz=mx+t*w/4;add('line',{x1:zz,y1:my,x2:zz,y2:my+h,stroke:'#34536a','stroke-width':.7,'stroke-dasharray':'3 6'});
- }
- add('line',{x1:mx,y1:py(0),x2:mx+w,y2:py(0),stroke:'#4d849c','stroke-width':1});
- add('polyline',{points:p.map(v=>px(v.z).toFixed(2)+','+py(v.r).toFixed(2)).join(' '),fill:'none',stroke:'#63d6ff','stroke-width':2.7,'stroke-linecap':'round','stroke-linejoin':'round'});
- plan.contour.forEach((v,i)=>{
-  const circle=add('circle',{cx:px(v.z),cy:py(v.x/2),r:5,fill:i?'#051e2a':'#4ff2b6',stroke:'#9be8ff','stroke-width':1.5,tabindex:0,role:'button','aria-label':'Редактировать точку '+(i+1)});
-  circle.addEventListener('click',()=>openPoint(i));circle.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openPoint(i)}});
+  if(save(next))message('Контур построен из CAD. Проверь последовательность элементов.');
  });
- add('text',{x:mx,y:222,fill:'#95bdd0','font-size':11},'Z '+fmt(minZ));
- add('text',{x:mx+w-90,y:222,fill:'#95bdd0','font-size':11},'Z '+fmt(maxZ));
- add('text',{x:mx+5,y:19,fill:'#95bdd0','font-size':11},'X Ø'+fmt(maxR*2));
 }
 function drawChecks(root){
  const stale=!modelMatches(plan,getPart());
@@ -184,26 +140,6 @@ function openOperation(index){
   if(save(next))q('st-dialog').close();
  };
 }
-function openPoint(index){
- editPoint=index;const v=plan.contour[index];
- const types=index===0?[['start','Стартовая точка']]:[['line','Прямая G1'],['arcCW','Дуга по часовой'],['arcCCW','Дуга против часовой']];
- const body='<div class="st-field-grid">'+select('kind','Тип элемента',types,v.kind)+
- field('x','X · диаметр, мм',fmt(v.x))+field('z','Z · координата, мм',fmt(v.z))+
- field('radius','Радиус R, мм (для дуги)',v.radius?fmt(v.radius):'')+'</div>'+
- (index?' <button type="button" class="st-delete" id="st-remove">Удалить точку</button>':'<p class="st-muted">Стартовая точка обязательна.</p>');
- dialog('Контур · точка '+(index+1),body,data=>{
-  const next=structuredClone(plan),p=next.contour[index],kind=data.get('kind');
-  p.kind=kind;p.x=n(data.get('x'));p.z=n(data.get('z'));delete p.radius;
-  if(kind.startsWith('arc'))p.radius=n(data.get('radius'));
-  if(save(next)){q('st-dialog').close();message('Контур перестроен.')}
-  else q('st-dialog-error').textContent=q('st-message').textContent;
- });
- const del=q('st-remove');if(del)del.onclick=()=>{
-  if(!confirm('Удалить точку контура?'))return;
-  const next=structuredClone(plan);next.contour.splice(index,1);
-  if(save(next))q('st-dialog').close();
- };
-}
 function download(text,file,type){
  const url=URL.createObjectURL(new Blob([text],{type})),a=document.createElement('a');
  a.href=url;a.download=file;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),20000);
@@ -214,7 +150,8 @@ function exportPlan(){
  'Отвод: XRA '+fmt(plan.header.xra)+' XRI '+fmt(plan.header.xri)+' ZRA '+fmt(plan.header.zra)+' ZRI '+fmt(plan.header.zri)+' SC '+fmt(plan.header.sc),
  'Смена: '+plan.header.toolChange+' XT '+(plan.header.xt??'НЕ ЗАДАНО')+' ZT '+(plan.header.zt??'НЕ ЗАДАНО'),'',
  'КОНТУР · ДАННЫЕ ДЛЯ РУЧНОГО ВВОДА'];
- plan.contour.forEach((p,i)=>lines.push((i+1)+'. '+p.kind+' X'+fmt(p.x)+' Z'+fmt(p.z)+(p.radius?' R'+fmt(p.radius):'')));
+ lines.push('Имя контура: '+(plan.contourName||'CONT_1'));
+ plan.contour.forEach((p,i)=>lines.push((i+1)+'. '+(p.kind==='line'?'LINE_'+(p.mode||'ZX'):p.kind)+' X'+fmt(p.x)+' Z'+fmt(p.z)+(p.radius?' R'+fmt(p.radius):'')+(p.arcMode==='center'?' I'+fmt(p.centerI)+' K'+fmt(p.centerK):'')+(p.transition?' → '+p.transition.type+' '+fmt(p.transition.value):'')));
  lines.push('','ОПЕРАЦИИ');
  plan.operations.forEach((o,i)=>lines.push((i+1)+'. '+OP_TYPES[o.type].label+' · '+o.tool+' D'+o.edge+' F'+fmt(o.feed)+' S'+fmt(o.speed)+' '+o.area+' · '+OP_TYPES[o.type].fields.map(([k])=>k+'='+fmt(o[k])).join(' ')));
  lines.push('','ПРОВЕРКА: геометрия, инструмент, коррекции, G54, патрон, безопасные отводы, пробный проход и симуляция SINUMERIK обязательны.');
