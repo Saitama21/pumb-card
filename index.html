@@ -10,6 +10,7 @@
  <link rel="manifest" href="./manifest.webmanifest">
  <link rel="icon" type="image/svg+xml" href="./icon.svg">
  <link rel="stylesheet" href="./styles.css">
+ <link rel="stylesheet" href="./shopturn.css">
  <title>CNC Toolbox Pro · 3D-конструктор</title>
 </head>
 <body>
@@ -96,6 +97,15 @@
    </section>
   </section>
 
+  <section class="page shopturn-page" id="page-shopturn" hidden>
+   <div class="page-title"><button class="back-button" data-go="edit" aria-label="К конструктору" type="button">‹</button><div><small>SHOPTURN / PROCESS PLANNER</small><h1>Операции ЧПУ</h1></div><span class="status-label">G54</span></div>
+   <section class="st-hero surface"><div><small>SIEMENS SINUMERIK 828D</small><h2>Карта обработки</h2><p id="st-meta">Операции · Контур · Инструменты</p></div><span class="st-icon">X<span>／</span>Z</span></section>
+   <p class="st-stale" id="st-stale" role="status" hidden>⚠ Геометрия CAD изменилась. Проверь контур и обнови его на вкладке «Контур».</p>
+   <div class="st-tabs" role="tablist" aria-label="Раздел ShopTurn"><button type="button" data-st-tab="operations" class="is-active" aria-selected="true">Операции</button><button type="button" data-st-tab="contour" aria-selected="false">Контур</button><button type="button" data-st-tab="header" aria-selected="false">Заголовок</button><button type="button" data-st-tab="checks" aria-selected="false">Проверка</button></div>
+   <section class="surface st-panel" id="st-content" aria-label="Редактор ShopTurn"></section>
+   <p id="st-message" class="st-message" role="status" aria-live="polite">Учебная карта обработки, не исполняемый код ЧПУ.</p>
+   <div class="st-export"><button id="st-export" class="button primary" type="button">↓ Карта TXT</button><button id="st-save-json" class="button ghost" type="button">↓ Проект JSON</button><button id="st-reset" class="button ghost" type="button">↺ Сброс</button></div>
+  </section>
   <section class="page preview-page" id="page-preview" hidden>
    <div class="page-title"><button class="back-button" data-go="edit" aria-label="Редактировать" type="button">‹</button><div><small>REAL GEOMETRY / B-REP</small><h1>3D-модель</h1></div><span class="status-label" id="model-state">ПРОФИЛЬ</span></div>
    <div class="view-tabs" role="tablist" aria-label="Режим просмотра"><button id="tab-model" class="is-active" type="button" aria-selected="true">⬡ Модель</button><button id="tab-drawing" type="button" aria-selected="false">⌗ Контур</button></div>
@@ -119,7 +129,8 @@
   </section>
  </main>
 
- <nav class="dock" aria-label="Навигация"><button data-go="home" class="dock-tab is-active" aria-current="page" type="button"><span class="dock-icon">⌂</span><span>Главная</span></button><button data-go="edit" class="dock-tab" type="button"><span class="dock-icon">▤</span><span>Контур</span></button><button data-go="preview" class="dock-tab" type="button"><span class="dock-icon">⬡</span><span>3D-модель</span></button><button data-go="settings" class="dock-tab" type="button"><span class="dock-icon">☷</span><span>Ещё</span></button></nav>
+ <nav class="dock" aria-label="Навигация"><button data-go="home" class="dock-tab is-active" aria-current="page" type="button"><span class="dock-icon">⌂</span><span>Главная</span></button><button data-go="edit" class="dock-tab" type="button"><span class="dock-icon">▤</span><span>Контур</span></button><button data-go="shopturn" class="dock-tab" type="button"><span class="dock-icon">⌁</span><span>ShopTurn</span></button><button data-go="preview" class="dock-tab" type="button"><span class="dock-icon">⬡</span><span>3D-модель</span></button><button data-go="settings" class="dock-tab" type="button"><span class="dock-icon">☷</span><span>Ещё</span></button></nav>
+ <dialog id="st-dialog" class="feature-dialog"><form id="st-dialog-form" method="dialog"><header><div><small>SHOPTURN / EDITOR</small><h2 id="st-dialog-title">Операция</h2></div><button type="button" id="st-dialog-close" class="dialog-close" aria-label="Закрыть">×</button></header><div id="st-dialog-fields" class="feature-fields"></div><p id="st-dialog-error" class="form-error" role="alert"></p><div class="dialog-actions"><button id="st-dialog-cancel" type="button" class="button ghost">Отмена</button><button type="submit" class="button primary">Сохранить</button></div></form></dialog>
  <dialog id="feature-dialog" class="feature-dialog"><form id="feature-form" method="dialog"><header><div><small>PARAMETRIC FEATURE</small><h2 id="feature-title">Ступень</h2></div><button type="button" id="close-feature" class="dialog-close" aria-label="Закрыть">×</button></header><div id="feature-fields" class="feature-fields"></div><p id="feature-error" class="form-error" role="alert"></p><div class="dialog-actions"><button id="cancel-feature" type="button" class="button ghost">Отмена</button><button id="submit-feature" type="submit" class="button primary">Сохранить</button></div></form></dialog>
  <input type="file" accept=".json,application/json" id="project-file" hidden>
  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
