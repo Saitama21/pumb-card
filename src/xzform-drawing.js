@@ -9,7 +9,8 @@ export function drawSection(svg,geometry,part,selected,{grid=false,dimensions=tr
  const H=Math.max(160,Math.round(rect.height||svg.parentElement?.clientHeight||340));
  svg.setAttribute('viewBox','0 0 '+W+' '+H);
  svg.setAttribute('preserveAspectRatio','xMidYMid meet');
- const top=52,bottom=75,availableWidth=Math.max(80,W-116);
+ const compact=H<340;
+ const top=compact?28:52,bottom=compact?50:75,availableWidth=Math.max(80,W-116);
  const scale=Math.min(availableWidth/Math.max(.001,length),
   Math.max(45,H-top-bottom)/Math.max(.001,maxD));
  const cx=(W-length*scale)/2,cy=(top+H-bottom)/2;
