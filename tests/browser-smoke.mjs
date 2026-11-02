@@ -134,6 +134,22 @@ async function viewportCheck(w,h){
   });
   if(compact.cardHeight>=370||compact.tableHeight>=180||Math.abs(compact.gap)>4)
    throw Error('Sparse point table stretches to fill viewport at '+w+': '+JSON.stringify(compact));
+  // Regression from iPhone screenshots: dimensions must be single-stroke
+  // readable text, not global SVG-icon outlines, and equal diameters appear once.
+  await page.click('.dock [data-view=drawing]');
+  await page.waitForFunction(()=>document.querySelector('#drawing-svg text')?.getBoundingClientRect().width>0);
+  const labels=await page.evaluate(()=>{
+   const svg=document.querySelector('#drawing-svg');
+   return [...svg.querySelectorAll('text')].map(el=>({
+    text:el.textContent,stroke:getComputedStyle(el).stroke,width:el.getBoundingClientRect().width
+   }));
+  });
+  if(labels.some(x=>x.stroke!=='none'||x.width<=0))
+   throw Error('Drawing labels inherited icon strokes at '+w+': '+JSON.stringify(labels));
+  const diameters=labels.filter(x=>x.text.startsWith('Ø'));
+  if(diameters.length!==1||diameters[0].text!=='Ø31.000')
+   throw Error('Equal end diameters clutter drawing at '+w+': '+JSON.stringify(labels));
+  await page.click('.dock [data-view=contour]');
   const many={...fixture,points:Array.from({length:45},(_,i)=>({id:'p'+i,x:31,z:-i}))};
   await page.evaluate(value=>localStorage.setItem('xzform-3d-part-v1',JSON.stringify(value)),many);
   await page.reload({waitUntil:'networkidle0',timeout:60000});
