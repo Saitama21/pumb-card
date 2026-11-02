@@ -89,6 +89,37 @@ async function viewportCheck(w,h){
   if(!step.ok||step.size<1000)throw Error('Generated STEP is not a real CAD exchange file: '+JSON.stringify(step));
   console.log('PASS Open CASCADE STEP binary',step.size);
  }
+ // Mobile regression: a two-point contour must not become a full-height blank card.
+ if(w<=760){
+  const fixture={version:2,name:'Two points',material:'AISI 304',origin:'right',
+   points:[{id:'p0',x:31,z:0},{id:'p1',x:31,z:-5}],holes:[]};
+  await page.evaluate(value=>localStorage.setItem('xzform-3d-part-v1',JSON.stringify(value)),fixture);
+  await page.reload({waitUntil:'networkidle0',timeout:60000});
+  await page.waitForSelector('#points-body tr:nth-child(2)');
+  const compact=await page.evaluate(()=>{
+   const card=document.querySelector('.contour-panel').getBoundingClientRect();
+   const table=document.querySelector('.contour-panel .table-scroll').getBoundingClientRect();
+   const footer=document.querySelector('.contour-panel .panel-bottom').getBoundingClientRect();
+   return {cardHeight:card.height,tableHeight:table.height,
+    gap:footer.top-table.bottom,
+    dockTop:document.querySelector('.dock').getBoundingClientRect().top};
+  });
+  if(compact.cardHeight>=370||compact.tableHeight>=180||Math.abs(compact.gap)>4)
+   throw Error('Sparse point table stretches to fill viewport at '+w+': '+JSON.stringify(compact));
+  const many={...fixture,points:Array.from({length:45},(_,i)=>({id:'p'+i,x:31,z:-i}))};
+  await page.evaluate(value=>localStorage.setItem('xzform-3d-part-v1',JSON.stringify(value)),many);
+  await page.reload({waitUntil:'networkidle0',timeout:60000});
+  await page.waitForSelector('#points-body tr:nth-child(45)');
+  const dense=await page.evaluate(()=>{
+   const card=document.querySelector('.contour-panel').getBoundingClientRect();
+   const area=document.querySelector('.contour-panel .table-scroll');
+   return {cardBottom:card.bottom,dockTop:document.querySelector('.dock').getBoundingClientRect().top,
+    client:area.clientHeight,scroll:area.scrollHeight,footer:document.querySelector('.contour-panel .panel-bottom').getBoundingClientRect().bottom};
+  });
+  if(dense.scroll<=dense.client+30||dense.cardBottom>=dense.dockTop-5||dense.footer>=dense.dockTop-5)
+   throw Error('Large point table hides actions behind dock at '+w+': '+JSON.stringify(dense));
+  console.log('PASS content-sized mobile tables: short and 45-point contours',w);
+ }
  console.log('PASS XZFORM browser',w,h);
  await page.close();
 }
