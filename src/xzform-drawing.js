@@ -7,7 +7,7 @@ export function drawSection(svg,geometry,part,selected,{grid=false,dimensions=tr
  const rect=svg.getBoundingClientRect();
  const W=Math.max(240,Math.round(rect.width||svg.parentElement?.clientWidth||680));
  const H=Math.max(240,Math.round(rect.height||svg.parentElement?.clientHeight||340));
- svg.setAttribute('viewBox',\`0 0 \${W} \${H}\`);
+ svg.setAttribute('viewBox','0 0 '+W+' '+H);
  svg.setAttribute('preserveAspectRatio','xMidYMid meet');
  const top=52,bottom=75,availableWidth=Math.max(80,W-116);
  const scale=Math.min(availableWidth/Math.max(.001,length),
