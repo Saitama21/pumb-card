@@ -31,7 +31,7 @@ function prepare(canvas){
  const animate=()=>{frame=requestAnimationFrame(animate);if(canvas.closest('[hidden]'))return;controls.update();renderer.render(scene,camera)};
  animate();
 }
-export function updatePreview(canvas,profile){
+export function updatePreview(canvas,profile,brepMesh=null){
  prepare(canvas);
  length=profile.length;maxD=profile.maxD;
  if(mesh){
@@ -39,14 +39,22 @@ export function updatePreview(canvas,profile){
   for(const child of mesh.children){child.geometry.dispose();child.material.dispose();}
   mesh.geometry.dispose();mesh.material.dispose();
  }
- const geometry=buildRevolvedGeometry(profile.polygon);
+ const geometry=brepMesh?new THREE.BufferGeometry():buildRevolvedGeometry(profile.polygon);
+ if(brepMesh){
+  geometry.setAttribute('position',new THREE.BufferAttribute(brepMesh.vertices,3));
+  geometry.setIndex(new THREE.BufferAttribute(brepMesh.triangles,1));
+  if(brepMesh.normals?.length===brepMesh.vertices.length)
+   geometry.setAttribute('normal',new THREE.BufferAttribute(brepMesh.normals,3));
+  else geometry.computeVertexNormals();
+ }
  const material=new THREE.MeshStandardMaterial({
   color:0xb2c3d0,metalness:.26,roughness:.46,side:THREE.FrontSide
  });
  mesh=new THREE.Mesh(geometry,material);
  // Turning geometry is axial Y internally; lay it horizontally for a
  // natural engineering isometric view without altering exact STEP coordinates.
- mesh.rotation.z=-Math.PI/2;
+ if(brepMesh)mesh.rotation.y=Math.PI/2;
+ else mesh.rotation.z=-Math.PI/2;
  const edgeGeometry=new THREE.EdgesGeometry(geometry,35);
  const outline=new THREE.LineSegments(edgeGeometry,
   new THREE.LineBasicMaterial({color:0x4f6d84,transparent:true,opacity:.44,depthWrite:false}));
