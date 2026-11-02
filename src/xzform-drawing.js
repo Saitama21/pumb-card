@@ -5,13 +5,13 @@ export function drawSection(svg,geometry,part,selected,{grid=false,dimensions=tr
  // The SVG is hidden while another mobile tab is selected. A subsequent visible
  // draw is triggered by setView and ResizeObserver; fallback only for initial markup.
  const rect=svg.getBoundingClientRect();
- const W=Math.max(240,Math.round(rect.width||svg.parentElement?.clientWidth||680));
- const H=Math.max(240,Math.round(rect.height||svg.parentElement?.clientHeight||340));
+ const W=Math.max(200,Math.round(rect.width||svg.parentElement?.clientWidth||680));
+ const H=Math.max(160,Math.round(rect.height||svg.parentElement?.clientHeight||340));
  svg.setAttribute('viewBox','0 0 '+W+' '+H);
  svg.setAttribute('preserveAspectRatio','xMidYMid meet');
  const top=52,bottom=75,availableWidth=Math.max(80,W-116);
  const scale=Math.min(availableWidth/Math.max(.001,length),
-  Math.max(100,H-top-bottom)/Math.max(.001,maxD));
+  Math.max(45,H-top-bottom)/Math.max(.001,maxD));
  const cx=(W-length*scale)/2,cy=(top+H-bottom)/2;
  const X=z=>cx+z*scale, Y=r=>cy-r*scale;
  const pos=(p,sign=1)=>[Number(X(p[1]).toFixed(2)),Number(Y(sign*p[0]).toFixed(2))];
