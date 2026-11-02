@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {exampleModel,modelProfile,sanitizeModel,totalLength,validateModel,insideAt} from '../src/model.js';
+import {exampleModel,modelProfile,sanitizeModel,totalLength,resizeTotalLength,validateModel,insideAt} from '../src/model.js';
 const part=()=>exampleModel();
 test('original sample produces exact stepped turning profile',()=>{
  const m=part(),p=modelProfile(m);
@@ -104,4 +104,38 @@ test('inner ring groove requires an existing open bore',()=>{
  assert.throws(()=>validateModel(m),/существующей расточки/);
  m.innerSections=[{id:'i',type:'cylinder',z:0,length:10,d:10}];
  assert.doesNotThrow(()=>validateModel(m));
+});
+
+test('editable overall length resizes exactly the final step and recalculates the CAD profile',()=>{
+ const original=part();
+ const extended=resizeTotalLength(original,52.5);
+ assert.equal(totalLength(extended),52.5);
+ assert.equal(extended.steps.at(-1).length,26.5);
+ assert.deepEqual(extended.steps.slice(0,-1),original.steps.slice(0,-1));
+ assert.equal(modelProfile(extended).length,52.5);
+ assert.equal(totalLength(original),37,'resizing must not mutate persisted geometry');
+ const shortened=resizeTotalLength(original,30);
+ assert.equal(shortened.steps.at(-1).length,4);
+ assert.equal(totalLength(shortened),30);
+});
+test('single-step new part has freely editable length and exact dimensions',()=>{
+ const single={version:1,name:'Новая деталь',bore:0,steps:[{id:'s',type:'cylinder',d:38,length:37}],grooves:[],innerGrooves:[],innerSections:[]};
+ const edited=resizeTotalLength(single,85.25);
+ assert.equal(totalLength(edited),85.25);
+ assert.equal(edited.steps[0].length,85.25);
+ assert.equal(modelProfile(edited).length,85.25);
+ assert.equal(sanitizeModel(edited).steps[0].length,85.25);
+});
+test('invalid overall length is rejected without touching original model',()=>{
+ const original=part();
+ for(const bad of [0,-1,Number.NaN,Infinity,10000.01,26,26.0005])assert.throws(()=>resizeTotalLength(original,bad));
+ assert.equal(totalLength(original),37);
+});
+test('shortening cannot silently cut off grooves or inner bores',()=>{
+ const original=part();
+ original.grooves.push({id:'g',z:34,width:2,d:32});
+ original.innerSections.push({id:'bore',type:'cylinder',z:30,length:7,d:25});
+ assert.throws(()=>resizeTotalLength(original,35),/выходит за длину/);
+ assert.equal(totalLength(original),37);
+ assert.equal(totalLength(resizeTotalLength(original,42)),42);
 });
