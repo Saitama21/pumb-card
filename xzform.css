@@ -44,3 +44,28 @@
     flex-shrink: 0;
   }
 }
+
+
+/* Mobile ribbon contains only primary actions; duplicate operations remain in
+   the contour card, model/view commands in their dock and viewer controls. */
+@media(max-width:760px){
+  .ribbon{overflow:visible;justify-content:stretch;gap:0;}
+  .ribbon-group{min-width:0;padding-right:2px;margin-right:2px;gap:0;}
+  .ribbon-group:nth-child(1){flex:3 1 0;}
+  .ribbon-group:nth-child(2){flex:1 1 0;}
+  .ribbon-group:nth-child(3){display:none;}
+  .ribbon-group:nth-child(4){flex:2 1 0;}
+  .ribbon-group:nth-child(2) button:not([data-action="add"]){display:none;}
+  .ribbon button{
+    flex:1 1 0;min-width:0;padding:3px 1px;
+    white-space:normal;text-align:center;line-height:1.1;
+    font-size:9px;gap:4px;overflow-wrap:anywhere;
+  }
+  .ribbon button.ribbon-export{min-width:0;}
+  .ribbon button svg{width:20px;height:20px;}
+  .ribbon-group:last-child{padding-right:0;margin-right:0;}
+}
+/* Canvas legibility follows the visible panel dimensions (SVG uses a matching
+   viewBox; no fixed 680x300 landscape letterboxing in portrait). */
+.drawing-panel .paper{overflow:hidden;}
+.drawing-panel #drawing-svg{min-width:0;min-height:0;}
