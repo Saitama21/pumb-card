@@ -8,7 +8,7 @@ const fmt=x=>Number(x).toFixed(3).replace(/0+$/,'').replace(/\.$/,'').replace('.
 const num=x=>Number(String(x).replace(',','.').trim());
 const safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&quot;'}[c]));
 const texts={start:'Начальная точка',X:'Прямая X',Z:'Прямая Z',ZX:'Прямая X/Z',arcCW:'Дуга ↻',arcCCW:'Дуга ↺'};
-let active=0,action=null,mode='ZX',hint='',full=false;
+let active=0,action=null,mode='ZX',syncHandler=null;
 function itemLabel(node){
  if(node.kind==='start')return texts.start;
  if(node.kind==='line')return texts[node.mode||'ZX'];
@@ -74,8 +74,8 @@ function renderPanel(root,plan,save,message){
   const next=structuredClone(plan);next.contourName=v;save(next);
  };
  for(const b of root.querySelectorAll('[data-sc-index]'))b.onclick=()=>{active=Number(b.dataset.scIndex);action='edit';refresh()};
- for(const b of root.querySelectorAll('[data-sc-key]'))b.onclick=()=>{mode=b.dataset.scKey;action='new';refresh()};
- byId('sc-edit').onclick=()=>{action='edit';refresh()};
+ for(const b of root.querySelectorAll('[data-sc-key]'))b.onclick=()=>{mode=b.dataset.scKey;action='new';refresh();byId('sc-parameter')?.scrollIntoView({behavior:'smooth',block:'nearest'})};
+ byId('sc-edit').onclick=()=>{action='edit';refresh();byId('sc-parameter')?.scrollIntoView({behavior:'smooth',block:'nearest'})};
  byId('sc-close').onclick=()=>{
   const end=nodes.at(-1),first=nodes[0];
   if(Math.hypot((end.x-first.x)/2,end.z-first.z)<1e-7){message('Контур уже замкнут');return}
@@ -176,6 +176,7 @@ function renderFields(holder,plan,save,message){
 }
 export function mountShopTurnContour(root,plan,save,message,sync){
  refresh=()=>renderPanel(root,plan,save,message);
- root.addEventListener('contour-sync-request',sync,{once:true});
+ syncHandler=sync;
+ if(!root.dataset.scBound){root.addEventListener('contour-sync-request',()=>syncHandler?.());root.dataset.scBound='1'}
  refresh();
 }
