@@ -4,7 +4,7 @@ import {modelProfile} from './model.js';
 const KEY='cnc-toolbox-shopturn-v1';
 const q=(id)=>document.getElementById(id);
 const n=(v)=>Number(String(v).trim().replace(',','.'));
-const fmt=(v)=>Number(v).toFixed(3).replace(/0+$/,'').replace(/[.,]$/,'').replace('.',',');
+const fmt=(v)=>v===null||v===undefined||v===''?'':Number(v).toFixed(3).replace(/0+$/,'').replace(/[.,]$/,'').replace('.',',');
 const html=(s)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let getPart,notify,plan,tab='operations',editIndex=-1,editPoint=-1;
 function message(t,err=false){const el=q('st-message');if(el){el.textContent=t;el.dataset.error=String(err)}if(err)notify?.(t)}
