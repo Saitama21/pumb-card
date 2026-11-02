@@ -68,7 +68,7 @@ function drawHeader(root){
  '<form id="st-header-form" class="st-form">'+
  '<div class="st-field-grid">'+field('g54','Система отсчёта','G54','readonly')+
  select('toolChange','Точка смены', [['MCS','MCS · машина'],['WCS','WCS · деталь']],h.toolChange)+
- ...[['xa','XA · Наружный Ø'],['xi','XI · Внутренний Ø'],['za','ZA · Начало Z'],['zi','ZI · Конец Z'],['zb','ZB · Зона обработки'],['xra','XRA · Отвод X'],['xri','XRI · Отвод внутри'],['zra','ZRA · Отвод передний'],['zri','ZRI · Отвод задний'],['sc','SC · Безопасный зазор'],['maxS','Ограничение S, об/мин'],['xt','XT · Точка смены X'],['zt','ZT · Точка смены Z']].map(([k,label])=>field(k,label,fmt(h[k]??''))) .join('')+
+ [['xa','XA · Наружный Ø'],['xi','XI · Внутренний Ø'],['za','ZA · Начало Z'],['zi','ZI · Конец Z'],['zb','ZB · Зона обработки'],['xra','XRA · Отвод X'],['xri','XRI · Отвод внутри'],['zra','ZRA · Отвод передний'],['zri','ZRI · Отвод задний'],['sc','SC · Безопасный зазор'],['maxS','Ограничение S, об/мин'],['xt','XT · Точка смены X'],['zt','ZT · Точка смены Z']].map(([k,label])=>field(k,label,fmt(h[k]??''))) .join('')+
  '</div><button class="button primary wide" type="submit">Сохранить заголовок</button></form>'+
  '<p class="st-caution">XT/ZT — координаты нуля револьверной головки, а не вершины резца. Отводы и положение кулачков не проверены автоматически.</p>';
  q('st-header-form').onsubmit=e=>{
