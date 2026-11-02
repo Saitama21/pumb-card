@@ -72,3 +72,6 @@ export function drawProfile(svg,profile){
  const label=add('text',{x:(lx+rx)/2,y:yy-7,'text-anchor':'middle',fill:'#d9f4ff','font-size':13,'font-weight':800});label.textContent='L '+L.toFixed(2)+' мм';
  const diameter=add('text',{x:W-12,y:24,'text-anchor':'end',fill:'#70d4ff','font-size':12,'font-weight':800});diameter.textContent='⌀ '+D.toFixed(2)+' мм';
 }
+
+/** Optional gentle auto rotation; existing 3D controls remain user-driven. */
+export function toggleAutoRotate(){if(!controls)return false;controls.autoRotate=!controls.autoRotate;controls.autoRotateSpeed=1.2;return controls.autoRotate;}
