@@ -52,6 +52,7 @@
    <div class="sidebar-title"><svg><use href="#ic-folder"/></svg> Проект</div>
    <button data-view="contour" class="active"><svg><use href="#ic-contour"/></svg>Контур (X/Z)</button>
    <button data-view="holes"><svg><use href="#ic-hole"/></svg>Отверстия</button>
+   <button data-view="flats"><svg><use href="#ic-section"/></svg>Лыски</button>
    <button data-view="drawing"><svg><use href="#ic-view"/></svg>Чертёж 2D</button>
    <button data-view="model"><svg><use href="#ic-cube"/></svg>3D-модель</button>
    <button data-view="export"><svg><use href="#ic-export"/></svg>Экспорт</button>
@@ -62,13 +63,20 @@
    <section class="panel contour-panel">
     <div class="panel-header"><h2><svg><use href="#ic-contour"/></svg> Контур детали <span>(точки X / Z)</span></h2><div class="panel-actions"><button data-action="undo" title="Отменить" aria-label="Отменить"><svg><use href="#ic-undo"/></svg></button><button data-action="redo" title="Повторить" aria-label="Повторить"><svg><use href="#ic-redo"/></svg></button></div></div>
     <div class="table-scroll"><table class="coord-table"><thead><tr><th>№</th><th>Тип</th><th>X (Ø, мм)</th><th>Z (мм)</th><th>Действие</th></tr></thead><tbody id="points-body"></tbody></table></div>
-    <div class="panel-bottom"><button class="primary" data-action="add"><svg><use href="#ic-plus"/></svg> Добавить точку</button><button data-action="insert">Вставить</button><button data-action="duplicate">Дублировать</button><button data-action="delete" class="text-danger">Удалить</button></div>
+    <div class="panel-bottom"><button class="primary" data-action="add"><svg><use href="#ic-plus"/></svg> Добавить точку</button><button data-action="insert">Вставить</button><button data-action="duplicate">Дублировать</button><button data-action="delete" class="text-danger">Удалить</button><button data-view="flats">Лыски <strong>S</strong></button></div>
    </section>
    <section class="panel holes-panel">
     <div class="panel-header"><h2><svg><use href="#ic-hole"/></svg> Отверстия</h2><span class="panel-hint">По оси Z · мм</span></div>
     <div class="hole-note">Диаметр и границы внутреннего канала, без выбора сверла.</div>
     <div class="table-scroll"><table class="hole-table"><thead><tr><th>№</th><th>Ø (мм)</th><th>Z нач.</th><th>Z кон.</th><th></th></tr></thead><tbody id="holes-body"></tbody></table></div>
     <div class="panel-bottom"><button data-action="add-hole"><svg><use href="#ic-plus"/></svg> Добавить отверстие</button><span class="hint-bore">Сквозное / глухое — по границам Z</span></div>
+   </section>
+   <section class="panel flat-panel">
+    <div class="panel-header"><h2><svg><use href="#ic-section"/></svg> Лыски <span>(размер под ключ S)</span></h2><span class="panel-hint">2 противоположные грани</span></div>
+    <p class="flat-note">Размер S — расстояние между плоскостями. Z задаётся от правого торца G54. Угол — ориентация вокруг оси детали, не параметр инструмента.</p>
+    <div class="table-scroll"><table class="flat-table"><thead><tr><th>S (мм)</th><th>Z нач.</th><th>Z кон.</th><th>°</th><th></th></tr></thead><tbody id="flats-body"></tbody></table></div>
+    <div class="panel-bottom"><button class="primary" data-action="add-flat"><svg><use href="#ic-plus"/></svg> Добавить пару лысок</button><button data-view="model"><svg><use href="#ic-cube"/></svg> Посмотреть в 3D</button></div>
+    <p class="flat-hint">Для ДКК-007: Ø31 → S27, участок Z −58…−37. Две параллельные плоскости по обе стороны оси.</p>
    </section>
   </div>
   <div class="stage-column">
