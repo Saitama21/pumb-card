@@ -79,8 +79,9 @@ async function viewportCheck(w,h){
  await page.waitForFunction(()=>{
   const svg=document.querySelector('#drawing-svg');
   const values=svg.getAttribute('viewBox')?.split(' ').map(Number);
-  return values?.[2]>250&&values?.[3]>240;
- });
+  return svg.clientWidth>200&&svg.clientHeight>240&&
+    Math.abs(values?.[2]-svg.clientWidth)<2&&Math.abs(values?.[3]-svg.clientHeight)<2;
+ },{timeout:12000});
  const drawingFit=await page.evaluate(()=>{
   const svg=document.querySelector('#drawing-svg');
   const viewBox=svg.viewBox.baseVal,shape=svg.querySelector('[data-profile="outer"]').getBBox();
