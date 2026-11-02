@@ -3,23 +3,25 @@ export const EPS=1e-7;
 export const newId=()=>globalThis.crypto?.randomUUID?.()||'n'+Math.random().toString(36).slice(2,10);
 export function examplePart(){return {version:2,name:'ДКК-007 · эскиз',material:'AISI 304',points:[
 {id:'p1',x:18,z:0},{id:'p2',x:18,z:-37},{id:'p3',x:31,z:-37},{id:'p4',x:31,z:-58}
-],holes:[{id:'h1',d:12.2,z0:-58,z1:0}],origin:'right'};}
+],holes:[{id:'h1',d:12.2,z0:-58,z1:0}],flats:[{id:'f1',width:27,z0:-58,z1:-37,angle:0}],origin:'right'};}
 export const round=n=>Math.round(n*1e6)/1e6;
 const finite=n=>typeof n==='number'&&Number.isFinite(n);
 export function normalizePart(raw){
- if(!raw||!Array.isArray(raw.points)||!Array.isArray(raw.holes))throw Error('Неверный формат проекта XZFORM');
+ if(!raw||!Array.isArray(raw.points)||!Array.isArray(raw.holes)||(raw.flats!==undefined&&!Array.isArray(raw.flats)))throw Error('Неверный формат проекта XZFORM');
  return {version:2,name:String(raw.name||'Новая деталь').slice(0,80),material:String(raw.material||'').slice(0,60),origin:'right',
   points:raw.points.map((p,i)=>({id:String(p.id||'p'+i),x:Number(p.x),z:Number(p.z)})),
-  holes:raw.holes.map((h,i)=>({id:String(h.id||'h'+i),d:Number(h.d),z0:Number(h.z0),z1:Number(h.z1)}))};
+  holes:raw.holes.map((h,i)=>({id:String(h.id||'h'+i),d:Number(h.d),z0:Number(h.z0),z1:Number(h.z1)})),
+  flats:(raw.flats||[]).map((f,i)=>({id:String(f.id||'f'+i),width:Number(f.width),z0:Number(f.z0),z1:Number(f.z1),angle:Number(f.angle??0)}))};
 }
 const nearly=(a,b)=>Math.abs(a-b)<EPS;
 function push(arr,p){
  if(!arr.length||!nearly(arr.at(-1)[0],p[0])||!nearly(arr.at(-1)[1],p[1]))arr.push(p);
 }
 export function buildPart(input){
- const part=normalizePart(input),p=part.points,h=part.holes;
+ const part=normalizePart(input),p=part.points,h=part.holes,flats=part.flats;
  if(p.length<2||p.length>250)throw Error('Укажи от 2 до 250 точек наружного контура');
  if(h.length>80)throw Error('Максимум 80 участков отверстий');
+ if(flats.length>12)throw Error('Максимум 12 пар лысок');
  for(const n of p)if(!finite(n.x)||n.x<=0||n.x>10000||!finite(n.z)||Math.abs(n.z)>10000)throw Error('Координаты X должны быть положительными, Z — конечными (мм)');
  let direction=0;
  for(let i=1;i<p.length;i++){
@@ -73,6 +75,27 @@ export function buildPart(input){
    if(boreAt(middle,1)>=outsideAt(middle)-EPS)throw Error('Недостаточная стенка около Z='+round(middle));
   }
  }
+ // Wrench flats are independent non-axisymmetric solid features. They do not
+ // alter the turning X/Z profile, but each pair must remove material from a
+ // cylindrical/tapered surface without breaking through its internal bore.
+ for(const f of flats){
+  if(!finite(f.width)||f.width<=0||f.width>10000||!finite(f.z0)||!finite(f.z1)||!finite(f.angle))
+   throw Error('Некорректные размеры лысок: укажи S, Z нач., Z кон. и угол');
+  if(f.z0<zMin-EPS||f.z1>zMax+EPS||f.z1-f.z0<EPS)
+   throw Error('Лыски должны находиться внутри длины детали');
+  const cuts=[f.z0,f.z1,...p.map(n=>n.z).filter(z=>z>f.z0+EPS&&z<f.z1-EPS)].sort((a,b)=>a-b);
+  let minD=Infinity,maxBore=0;
+  for(let i=1;i<cuts.length;i++){
+   const midpoint=(cuts[i-1]+cuts[i])/2;
+   minD=Math.min(minD,2*outsideAt(midpoint));
+   maxBore=Math.max(maxBore,2*boreAt(midpoint,1));
+  }
+  if(f.width>=minD-EPS)throw Error('Размер S лысок должен быть меньше диаметра поверхности на всём участке Z');
+  if(f.width<=maxBore+EPS)throw Error('Лыски пересекают отверстие: размер S должен быть больше диаметра канала');
+ }
+ for(let i=0;i<flats.length;i++)for(let j=i+1;j<flats.length;j++)
+  if(flats[i].z0<flats[j].z1-EPS&&flats[j].z0<flats[i].z1-EPS)
+   throw Error('Перекрывающиеся пары лысок пока не поддерживаются');
  const inner=[];
  for(let i=0;i<stops.length;i++){
   const z=stops[i];
@@ -83,7 +106,7 @@ export function buildPart(input){
  for(const q of [...inner].reverse())push(polygon,q);
  if(polygon.length<3)throw Error('Невозможно замкнуть сечение детали');
  const profile={outer,inner:inner.some(n=>n[0]>EPS)?inner:[],polygon,length:L,maxD:Math.max(...p.map(n=>n.x))};
- return {part,profile,zMin,zMax,length:L,maxD:profile.maxD};
+ return {part,profile,zMin,zMax,length:L,maxD:profile.maxD,flats:flats.map(f=>({...f,localZ0:round(f.z0-zMin),localZ1:round(f.z1-zMin),angle:((f.angle%180)+180)%180}))};
 }
 /** Non-destructive migration of earlier step-based projects without unsupported extra features. */
 export function fromLegacy(raw){
@@ -99,6 +122,6 @@ export function fromLegacy(raw){
  }
  if(!nearly(z,L))throw Error('Ошибочная длина проекта');
  const bore=Number(raw.bore)||0;
- const res={version:2,name:String(raw.name||'Импортированная деталь'),material:'',origin:'right',points,holes:bore?[{id:newId(),d:bore,z0:round(-L),z1:0}]:[]};
+ const res={version:2,name:String(raw.name||'Импортированная деталь'),material:'',origin:'right',points,holes:bore?[{id:newId(),d:bore,z0:round(-L),z1:0}]:[],flats:[]};
  buildPart(res);return res;
 }
