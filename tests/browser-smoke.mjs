@@ -94,7 +94,34 @@ async function viewportCheck(w,h){
     drawingFit.partWidth<drawingFit.width*.3||
     drawingFit.partHeight<15)
   throw Error('Drawing not fitted to viewport at '+w+': '+JSON.stringify(drawingFit));
+ // Capture the kernel-produced mesh, not the UI input, to check exact flats.
+ await page.evaluate(()=>{
+  const original=Worker.prototype.addEventListener;
+  Worker.prototype.addEventListener=function(kind,handler,...rest){
+   if(kind==='message'){
+    original.call(this,'message',e=>{if(e.data?.ok&&e.data?.vertices&&e.data?.triangles)window.__occtMesh=e.data;});
+   }
+   return original.call(this,kind,handler,...rest);
+  };
+ });
  await page.click('.dock [data-view=model]');
+ await page.waitForFunction(()=>document.querySelector('#cad-canvas').dataset.geometrySource==='occt-brep',{timeout:115000});
+ const flatMesh=await page.evaluate(()=>{
+  const m=window.__occtMesh;
+  if(!m)return null;
+  const a=m.vertices;
+  let maxX=0,maxY=0,minZ=Infinity,maxZ=-Infinity;
+  for(let i=0;i<a.length;i+=3){
+   maxX=Math.max(maxX,Math.abs(a[i]));
+   maxY=Math.max(maxY,Math.abs(a[i+1]));
+   minZ=Math.min(minZ,a[i+2]);maxZ=Math.max(maxZ,a[i+2]);
+  }
+  return {maxX,maxY,minZ,maxZ,vertices:a.length/3,triangles:m.triangles.length/3};
+ });
+ if(!flatMesh||Math.abs(flatMesh.maxX-13.5)>.12||Math.abs(flatMesh.maxY-15.5)>.12||
+    Math.abs(flatMesh.minZ)>0.1||Math.abs(flatMesh.maxZ-58)>.1)
+   throw Error('Physical flats differ from S27 and Ø31 at '+w+': '+JSON.stringify(flatMesh));
+ console.log('PASS real OCCT flats: S'+(flatMesh.maxX*2).toFixed(3)+' mm; head Ø'+(flatMesh.maxY*2).toFixed(3)+' mm, '+flatMesh.triangles+' triangles');
  await page.waitForFunction(()=>document.querySelector('#cad-canvas').width>100&&document.querySelector('#cad-canvas').height>100,{timeout:25000});
  await page.click('.dock [data-view=export]');
  const exportVisible=await page.$eval('.export-panel',el=>getComputedStyle(el).display!=='none');
@@ -115,8 +142,18 @@ async function viewportCheck(w,h){
    return {size:b.size,header:t.slice(0,180),ok:t.includes('ISO-10303-21')&&t.includes('DATA;')};
   });
   if(!step.ok||step.size<1000)throw Error('Generated STEP is not a real CAD exchange file: '+JSON.stringify(step));
+  if(!step.header.includes('ISO-10303-21'))throw Error('STEP header missing');
   console.log('PASS Open CASCADE STEP binary',step.size);
  }
+ // Feature panel is reachable without changing the five-tab fixed dock.
+ await page.click('.dock [data-view=contour]');
+ await page.click('.contour-panel [data-view=flats]');
+ const flatsVisible=await page.$eval('.flat-panel',el=>getComputedStyle(el).display==='flex');
+ if(!flatsVisible)throw Error('Wrench flats editor unavailable at '+w);
+ const af=await page.$eval('#flats-body input[name=width]',el=>el.value);
+ if(af!=='27.000')throw Error('DKK example was not seeded with S27 flats');
+ await page.click('.flat-panel [data-view=model]');
+ await page.waitForFunction(()=>document.querySelector('#cad-canvas').dataset.geometrySource==='occt-brep');
  // Mobile regression: a two-point contour must not become a full-height blank card.
  if(w<=760){
   const fixture={version:2,name:'Two points',material:'AISI 304',origin:'right',
