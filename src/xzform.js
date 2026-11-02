@@ -1,5 +1,5 @@
 import {examplePart,normalizePart,buildPart,fromLegacy,newId,round} from './xzform-core.js';
-import {updatePreview,fitCamera,zoom} from './preview.js';
+import {updatePreview,fitCamera,zoom,toggleAutoRotate} from './preview.js';
 const $=id=>document.getElementById(id);
 const STORAGE='xzform-3d-part-v1',THEME='xzform-3d-theme-v1';
 let part=examplePart(),geometry=null,selected=0,view='contour',lastError='',history=[],future=[],rev=0,last3D=-1,busy=false;
@@ -233,7 +233,7 @@ function bind(){
  $('profile-tab').addEventListener('click',()=>{showDims=false;$('toggle-dims').classList.remove('selected');svgDraw();setView('drawing');});
  $('fit-drawing').addEventListener('click',()=>svgDraw());
  $('model-fit').addEventListener('click',()=>fitCamera());
- $('model-rotate').addEventListener('click',e=>{autoSpin=!autoSpin;e.currentTarget.classList.toggle('selected',autoSpin);toast(autoSpin?'Для вращения модели перетащи её пальцем или мышью':'Вид модели зафиксирован');});
+ $('model-rotate').addEventListener('click',e=>{autoSpin=toggleAutoRotate();e.currentTarget.classList.toggle('selected',autoSpin);toast(autoSpin?'Автовращение включено':'Автовращение остановлено');});
  $('model-zoom-in').addEventListener('click',()=>zoom(.8));
  $('model-zoom-out').addEventListener('click',()=>zoom(1.25));
  window.addEventListener('online',networkStatus);window.addEventListener('offline',networkStatus);
