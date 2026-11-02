@@ -9,6 +9,12 @@
 - The operation plan autosaves offline and exports machine-*non-executable* TXT/JSON. The CAD project and existing STEP export remain independent; no unverified NC toolpaths or collision guarantees are claimed.
 - Unit checks, build and browser smoke are required before release. Production machining still requires verification of tool geometry, spindle/chuck setup, offsets and simulation on the real SINUMERIK 828D.
 
+## v0.5 · SINUMERIK-like contour geometry workflow
+- Refactored contour screen to mirror Siemens SINUMERIK Turning Operating Manual, §8.3.2–8.3.6, pp.352–365: contour name, start X/Z, sequential symbolic element list, sketch graphic, softkeys for line Z, line X, line ZX and circle/arc, element mask and "Accept".
+- Separate axis masks with absolute/incremental endpoint entry, radius-defined R arcs or center I/K input, clockwise / counterclockwise arcs, line-to-line fillet R and chamfer FS **in the actual 2D geometry**.
+- Selected element and ghost preview drawing, insert after selected element, delete element, close contour and rebuild from CAD. Existing saved contours remain compatible.
+- Limits: this is a carefully scoped geometric editor, not Siemens' full underdetermined solver: tangent-to-previous, multiple-solution chooser, undercuts E/F and corner treatment involving circles are not yet implemented. It does not produce machine-ready NC code.
+
 ## v0.4 · ShopTurn operation planner (educational / not executable NC)
 - New **ShopTurn** workspace in the original independent five-tab bottom dock. The existing CAD/3D/STEP workflow is unchanged.
 - Editable, ordered process steps: facing, CYCLE952 roughing/finishing, drilling, internal boring, CYCLE930 grooves, CYCLE99 threading and CYCLE92 parting. Each card stores tool T, cutting edge D, feed F in mm/rev and spindle S, plus cycle-specific inputs.
@@ -62,7 +68,9 @@ Deployment: GitHub Actions tests and uploads the built `dist/` to GitHub Pages o
 Architecture:
 - `src/model.js` pure parametric profile, validation and immutable import
 - `src/app.js` CAD interface and editable geometry feature tree
-- `src/shopturn-core.js` immutable validated ShopTurn process and X/Z contour mathematics
+- `src/shopturn-core.js` validated ShopTurn operations and data migration
+- `src/contour-geometry.js` pure diametral-X/Z geometry, arcs and line-line R/FS transitions
+- `src/contour-editor.js` machine-style element masks and softkey flow
 - `src/shopturn.js`, `shopturn.css` operation planner and touch-first contour editor
 - `src/preview.js` faithfully reconstructed Three.js LatheGeometry preview from profile points
 - `src/cad.worker.js` **real** Open CASCADE B-Rep revolved solid and STEP Blob
