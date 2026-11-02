@@ -7,12 +7,15 @@ function prepare(canvas){
  canvasEl=canvas;
  renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:'low-power'});
  renderer.outputColorSpace=THREE.SRGBColorSpace;
+ renderer.toneMapping=THREE.ACESFilmicToneMapping;
+ renderer.toneMappingExposure=1.15;
  renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
  scene=new THREE.Scene();
  camera=new THREE.PerspectiveCamera(38,1,.1,25000);
- scene.add(new THREE.HemisphereLight(0xc6e8ff,0x142b44,2.4));
- const key=new THREE.DirectionalLight(0xf2fbff,3.6);key.position.set(45,60,90);scene.add(key);
- const rim=new THREE.DirectionalLight(0x29b9ff,2);rim.position.set(-60,40,-40);scene.add(rim);
+ scene.add(new THREE.HemisphereLight(0xeaf4ff,0x667d91,1.65));
+ const key=new THREE.DirectionalLight(0xffffff,2.15);key.position.set(45,60,90);scene.add(key);
+ const rim=new THREE.DirectionalLight(0x9ec9ed,.85);rim.position.set(-65,25,-70);scene.add(rim);
+ const fill=new THREE.DirectionalLight(0xf1f6ff,.7);fill.position.set(20,-30,-40);scene.add(fill);
  controls=new OrbitControls(camera,canvas);
  controls.enableDamping=true;controls.dampingFactor=.075;
  controls.minDistance=8;controls.maxDistance=18000;
@@ -20,6 +23,7 @@ function prepare(canvas){
   const r=canvas.getBoundingClientRect(),w=Math.max(1,Math.floor(r.width)),h=Math.max(1,Math.floor(r.height));
   renderer.setSize(w,h,false);
   camera.aspect=w/h;camera.updateProjectionMatrix();
+  if(mesh&&w>2&&h>2)fitCamera();
  };
  new ResizeObserver(resize).observe(canvas);
  resize();
@@ -34,20 +38,41 @@ function buildGeometry(profile){
 export function updatePreview(canvas,profile){
  prepare(canvas);
  length=profile.length;maxD=profile.maxD;
- if(mesh){scene.remove(mesh);mesh.geometry.dispose();mesh.material.dispose()}
- mesh=new THREE.Mesh(buildGeometry(profile),new THREE.MeshStandardMaterial({
- color:0xa7c9dd,metalness:.72,roughness:.27,side:THREE.DoubleSide
- }));
+ if(mesh){
+  scene.remove(mesh);
+  for(const child of mesh.children){child.geometry.dispose();child.material.dispose();}
+  mesh.geometry.dispose();mesh.material.dispose();
+ }
+ const geometry=buildGeometry(profile);
+ const material=new THREE.MeshStandardMaterial({
+  color:0xb2c3d0,metalness:.26,roughness:.46,side:THREE.DoubleSide
+ });
+ mesh=new THREE.Mesh(geometry,material);
+ // Turning geometry is axial Y internally; lay it horizontally for a
+ // natural engineering isometric view without altering exact STEP coordinates.
+ mesh.rotation.z=-Math.PI/2;
+ const edgeGeometry=new THREE.EdgesGeometry(geometry,35);
+ const outline=new THREE.LineSegments(edgeGeometry,
+  new THREE.LineBasicMaterial({color:0x4f6d84,transparent:true,opacity:.44,depthWrite:false}));
+ mesh.add(outline);
  scene.add(mesh);
  fitCamera();
 }
 export function fitCamera(){
  if(!camera||!controls)return;
- const size=Math.max(length,maxD),center=length/2;
- controls.target.set(0,center,0);
- camera.position.set(size*1.5,center+size*.92,size*1.7);
- camera.near=Math.max(.01,size/1000);camera.far=Math.max(1000,size*60);
- camera.updateProjectionMatrix();controls.update();
+ const halfVertical=THREE.MathUtils.degToRad(camera.fov)*.5;
+ const halfHorizontal=Math.atan(Math.tan(halfVertical)*Math.max(.2,camera.aspect));
+ const halfFov=Math.min(halfVertical,halfHorizontal);
+ const radius=Math.hypot(length/2,maxD/2);
+ const distance=radius/Math.max(.08,Math.sin(halfFov))*1.22;
+ const center=new THREE.Vector3(length/2,0,0);
+ controls.target.copy(center);
+ const direction=new THREE.Vector3(1.05,.75,1.5).normalize();
+ camera.position.copy(center).addScaledVector(direction,distance);
+ camera.near=Math.max(.01,distance/1000);
+ camera.far=Math.max(1000,distance*15);
+ camera.updateProjectionMatrix();
+ controls.update();
 }
 export function zoom(factor){
  if(!camera||!controls)return;
