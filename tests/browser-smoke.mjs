@@ -15,6 +15,18 @@ async function start(){
 async function viewportCheck(w,h){
  const page=await browser.newPage();
  await page.setViewport({width:w,height:h,deviceScaleFactor:1,isMobile:w<=760,hasTouch:w<=760});
+ // Intercept Worker responses before the module initializes. Desktop starts
+ // the OCC preview during initial render; mobile defers it until 3D is shown.
+ await page.evaluateOnNewDocument(()=>{
+  const original=Worker.prototype.addEventListener;
+  Worker.prototype.addEventListener=function(kind,handler,...rest){
+   if(kind==='message')original.call(this,'message',event=>{
+    if(event.data?.ok&&event.data?.vertices&&event.data?.triangles)window.__occtMesh=event.data;
+   });
+   return original.call(this,kind,handler,...rest);
+  };
+ });
+
  const faults=[];
  page.on('pageerror',e=>faults.push(String(e)));
  await page.goto(host,{waitUntil:'networkidle0',timeout:60000});
@@ -94,16 +106,6 @@ async function viewportCheck(w,h){
     drawingFit.partWidth<drawingFit.width*.3||
     drawingFit.partHeight<15)
   throw Error('Drawing not fitted to viewport at '+w+': '+JSON.stringify(drawingFit));
- // Capture the kernel-produced mesh, not the UI input, to check exact flats.
- await page.evaluate(()=>{
-  const original=Worker.prototype.addEventListener;
-  Worker.prototype.addEventListener=function(kind,handler,...rest){
-   if(kind==='message'){
-    original.call(this,'message',e=>{if(e.data?.ok&&e.data?.vertices&&e.data?.triangles)window.__occtMesh=e.data;});
-   }
-   return original.call(this,kind,handler,...rest);
-  };
- });
  await page.click('.dock [data-view=model]');
  await page.waitForFunction(()=>document.querySelector('#cad-canvas').dataset.geometrySource==='occt-brep',{timeout:115000});
  const flatMesh=await page.evaluate(()=>{
