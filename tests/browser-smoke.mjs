@@ -36,7 +36,7 @@ async function checkSize(w,h){
  await page.click('[data-go="shopturn"].dock-tab');
  await page.waitForSelector('#st-ops .st-op');
  const initialOps=await page.$('#st-ops .st-op');
- if(initialOps.length!==3)throw Error('ShopTurn initial process has wrong operation count at '+w);
+ if(initialOps.length!==3)throw Error('ShopTurn initial process has wrong operation count at '+w+' count='+initialOps.length+' '+JSON.stringify(await page.evaluate(()=>({meta:document.querySelector('#st-meta')?.textContent,ops:document.querySelector('#st-ops')?.innerHTML.slice(0,1500),message:document.querySelector('#st-message')?.textContent,dialog:document.querySelector('#st-dialog')?.open})))+' faults='+faults.join(' | '));
  await page.click('[data-st-tab="contour"]');
  await page.waitForSelector('#st-contour-svg polyline');
  const originalPoints=await page.$('#st-points .st-point');
