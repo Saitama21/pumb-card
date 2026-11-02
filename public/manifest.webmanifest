@@ -1,12 +1,12 @@
 {
-  "name": "CNC Toolbox Pro — 3D-конструктор",
-  "short_name": "CNC Toolbox",
-  "description": "Офлайн параметрический конструктор токарных деталей, точный STEP для eDrawings",
+  "name": "XZFORM 3D — Конструктор деталей X/Z",
+  "short_name": "XZFORM 3D",
+  "description": "Офлайн CAD: координаты X/Z, 2D чертёж, 3D-модель, реальный STEP",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#07111c",
-  "theme_color": "#07111c",
+  "background_color": "#EDF2F8",
+  "theme_color": "#EDF2F8",
   "icons": [
     {
       "src": "./icon.svg",
