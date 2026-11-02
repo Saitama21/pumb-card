@@ -39,6 +39,7 @@ export function updatePreview(canvas,profile,brepMesh=null){
   for(const child of mesh.children){child.geometry.dispose();child.material.dispose();}
   mesh.geometry.dispose();mesh.material.dispose();
  }
+ canvas.dataset.geometrySource=brepMesh?'occt-brep':'lathe';
  const geometry=brepMesh?new THREE.BufferGeometry():buildRevolvedGeometry(profile.polygon);
  if(brepMesh){
   geometry.setAttribute('position',new THREE.BufferAttribute(brepMesh.vertices,3));
