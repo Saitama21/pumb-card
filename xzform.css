@@ -69,3 +69,12 @@
    viewBox; no fixed 680x300 landscape letterboxing in portrait). */
 .drawing-panel .paper{overflow:hidden;}
 .drawing-panel #drawing-svg{min-width:0;min-height:0;}
+
+/* App icons inherit an outline stroke. SVG engineering annotations do not:
+   that inherited stroke doubled every glyph and made dimensions illegible. */
+#drawing-svg text {
+  stroke: none;
+  stroke-width: 0;
+  paint-order: normal;
+  fill-opacity: 1;
+}
