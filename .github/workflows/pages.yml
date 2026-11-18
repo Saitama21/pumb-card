@@ -28,7 +28,7 @@ jobs:
           test -s icon.svg
           node --check app.js
           node --check sw.js
-          node -e "const m=require('./manifest.webmanifest'); if(!m.icons?.length)process.exit(1)"
+          node -e "const m=JSON.parse(require('fs').readFileSync('manifest.webmanifest','utf8')); if(!m.icons?.length)process.exit(1)"
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
